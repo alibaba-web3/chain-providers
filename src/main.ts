@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
+import { DingTalkModule } from './dingtalk';
 import { EthModule } from './eth';
 
 @Module({
-  imports: [EthModule],
+  imports: [DingTalkModule, EthModule],
 })
 class AppModule {}
 
