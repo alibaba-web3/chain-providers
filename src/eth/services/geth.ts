@@ -5,21 +5,23 @@ import { firstValueFrom } from 'rxjs';
 export const GETH_HTTP_URL = 'http://localhost:8545';
 
 export interface SyncingResponse {
-  currentBlock: number;
-  healedBytecodeBytes: number;
-  healedBytecodes: number;
-  healedTrienodeBytes: number;
-  healedTrienodes: number;
-  healingBytecode: number;
-  healingTrienodes: number;
-  highestBlock: number;
-  startingBlock: number;
-  syncedAccountBytes: number;
-  syncedAccounts: number;
-  syncedBytecodeBytes: number;
-  syncedBytecodes: number;
-  syncedStorage: number;
-  syncedStorageBytes: number;
+  result: {
+    currentBlock: string;
+    healedBytecodeBytes: string;
+    healedBytecodes: string;
+    healedTrienodeBytes: string;
+    healedTrienodes: string;
+    healingBytecode: string;
+    healingTrienodes: string;
+    highestBlock: string;
+    startingBlock: string;
+    syncedAccountBytes: string;
+    syncedAccounts: string;
+    syncedBytecodeBytes: string;
+    syncedBytecodes: string;
+    syncedStorage: string;
+    syncedStorageBytes: string;
+  };
 }
 
 @Injectable()
