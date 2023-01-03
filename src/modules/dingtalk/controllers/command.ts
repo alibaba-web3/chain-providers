@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { GethService } from '../../eth/services/geth';
+import { GethService } from '@/modules/eth/services/geth';
 import { firstValueFrom } from 'rxjs';
 
 @Controller('/dingtalk/command')

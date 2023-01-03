@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
+import { GethService } from '@/modules/eth/services/geth';
 import { CommandController } from './controllers/command';
-import { GethService } from '../eth/services/geth';
 
 @Module({
   controllers: [CommandController],

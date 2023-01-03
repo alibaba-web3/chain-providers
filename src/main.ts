@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
-import { DingTalkModule } from './dingtalk';
-import { EthModule } from './eth';
+import { DingTalkModule } from './modules/dingtalk';
+import { EthModule } from './modules/eth';
 
 @Module({
   imports: [DingTalkModule, EthModule],
