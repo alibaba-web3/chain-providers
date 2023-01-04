@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { ETHEREUM_GETH_HTTP_URL } from '@/constants';
 import { firstValueFrom } from 'rxjs';
 
-export const GETH_HTTP_URL = 'http://localhost:8545';
+export interface RequestBody {
+  id: string | number;
+  jsonrpc: string;
+  method: string;
+  params: any[];
+}
 
-export interface SyncingResponse {
+export interface EthSyncingResponse {
   result: {
     currentBlock: string;
     healedBytecodeBytes: string;
@@ -25,18 +31,22 @@ export interface SyncingResponse {
 }
 
 @Injectable()
-export class GethService {
+export class EthereumGethService {
   constructor(private readonly httpService: HttpService) {}
 
-  async syncing(): Promise<SyncingResponse> {
+  async request<T>(body: RequestBody) {
     const res = await firstValueFrom(
-      this.httpService.post<SyncingResponse>(GETH_HTTP_URL, {
-        jsonrpc: '2.0',
-        id: Date.now(),
-        method: 'eth_syncing',
-        params: [],
-      }),
+      this.httpService.post<T>(ETHEREUM_GETH_HTTP_URL, body),
     );
     return res.data;
+  }
+
+  eth_syncing() {
+    return this.request<EthSyncingResponse>({
+      id: Date.now(),
+      jsonrpc: '2.0',
+      method: 'eth_syncing',
+      params: [],
+    });
   }
 }
