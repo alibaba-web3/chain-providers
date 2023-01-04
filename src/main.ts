@@ -1,3 +1,7 @@
+// 在最前面初始化环境变量
+// eslint-disable-next-line
+require('dotenv').config();
+
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,11 +14,11 @@ import { EthereumTransactions } from '@/entities/ethereum-transactions';
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: '',
-      username: '',
-      password: '',
-      database: '',
-      charset: '',
+      host: process.env.MYSQL_HOST,
+      username: process.env.MYSQL_USERNAME,
+      password: process.env.MYSQL_PASSWORD,
+      database: 'blockchain',
+      charset: 'utf8mb4',
       entities: [EthereumBlocks, EthereumTransactions],
     }),
     DingTalkModule,

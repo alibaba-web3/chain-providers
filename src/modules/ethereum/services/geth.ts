@@ -32,7 +32,7 @@ export interface EthSyncingResponse {
 
 @Injectable()
 export class EthereumGethService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private httpService: HttpService) {}
 
   async request<T>(body: RequestBody) {
     const res = await firstValueFrom(

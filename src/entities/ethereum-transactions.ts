@@ -54,5 +54,5 @@ export class EthereumTransactions {
   type: number;
 
   @Column()
-  access_list: any[];
+  access_list: string;
 }
