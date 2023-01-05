@@ -10,7 +10,7 @@ export class EthereumBlocksService {
     private blocksRepository: Repository<EthereumBlocks>,
   ) {}
 
-  async insertOne(block: EthereumBlocks) {
-    this.blocksRepository.insert(block);
+  insert(block: EthereumBlocks) {
+    return this.blocksRepository.insert(block);
   }
 }
