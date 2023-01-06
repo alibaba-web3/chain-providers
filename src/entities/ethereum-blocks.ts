@@ -2,36 +2,36 @@ import { Entity, Column, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class EthereumBlocks {
-  @PrimaryColumn()
+  @PrimaryColumn('int', { unsigned: true })
   block_number: number;
 
-  @PrimaryColumn()
+  @PrimaryColumn('char', { length: 66 })
   block_hash: string;
 
-  @Column()
+  @Column('char', { length: 66 })
   parent_block_hash: string;
 
-  @Column()
+  @Column('int', { unsigned: true })
   gas_limit: number;
 
-  @Column()
+  @Column('int', { unsigned: true })
   gas_used: number;
 
-  @Column()
+  @Column('int', { unsigned: true })
   base_fee_per_gas: number;
 
-  @Column()
+  @Column('int', { unsigned: true })
   size: number;
 
-  @Column()
+  @Column('char', { length: 42 })
   miner: string;
 
-  @Column()
+  @Column('int', { unsigned: true })
   nonce: number;
 
-  @Column()
-  timestamp: number;
+  @Column('datetime')
+  timestamp: Date;
 
-  @Column()
+  @Column('int', { unsigned: true })
   transactions_count: number;
 }

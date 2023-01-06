@@ -5,6 +5,7 @@ require('dotenv').config();
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { DingTalkModule } from './modules/dingtalk';
 import { EthModule } from './modules/ethereum';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
@@ -21,6 +22,7 @@ import { EthereumTransactions } from '@/entities/ethereum-transactions';
       charset: 'utf8mb4',
       entities: [EthereumBlocks, EthereumTransactions],
     }),
+    ScheduleModule.forRoot(),
     DingTalkModule,
     EthModule,
   ],

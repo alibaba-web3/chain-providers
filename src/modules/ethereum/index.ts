@@ -5,6 +5,7 @@ import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumJsonRpcController } from './controllers/json-rpc';
 import { EthereumBlocksService } from './services/blocks';
+import { EthereumGethToMysqlService } from './services/geth-to-mysql';
 import { EthereumGethService } from './services/geth';
 
 @Module({
@@ -13,6 +14,10 @@ import { EthereumGethService } from './services/geth';
     TypeOrmModule.forFeature([EthereumBlocks, EthereumTransactions]),
   ],
   controllers: [EthereumJsonRpcController],
-  providers: [EthereumBlocksService, EthereumGethService],
+  providers: [
+    EthereumBlocksService,
+    EthereumGethToMysqlService,
+    EthereumGethService,
+  ],
 })
 export class EthModule {}
