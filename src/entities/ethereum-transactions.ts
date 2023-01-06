@@ -1,58 +1,59 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToOne } from 'typeorm';
+import { EthereumBlocks } from './ethereum-blocks';
 
 @Entity()
 export class EthereumTransactions {
-  @PrimaryColumn()
+  @PrimaryColumn('char', { length: 66 })
   transaction_hash: string;
 
-  @Column()
+  @Column('int', { unsigned: true })
   transaction_index: number;
 
-  @Column()
+  @ManyToOne(() => EthereumBlocks, (block) => block.block_number)
   block_number: number;
 
-  @Column()
+  @ManyToOne(() => EthereumBlocks, (block) => block.block_hash)
   block_hash: string;
 
-  @Column()
-  block_timestamp: number;
+  @Column('datetime')
+  block_timestamp: Date;
 
-  @Column()
+  @Column('char', { length: 42 })
   from: string;
 
-  @Column()
+  @Column('char', { length: 42 })
   to: string;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   value: number;
 
-  @Column()
+  @Column('text')
   input: string;
 
-  @Column()
+  @Column('int', { unsigned: true })
   gas_used: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   gas_price: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   max_fee_per_gas: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   max_priority_fee_per_gas: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   effective_gas_price: number;
 
-  @Column()
+  @Column('boolean')
   success: boolean;
 
-  @Column()
+  @Column('int', { unsigned: true })
   nonce: number;
 
-  @Column()
-  type: number;
+  @Column('varchar', { length: 20 })
+  type: 'Legacy' | 'AccessList' | 'DynamicFee';
 
-  @Column()
+  @Column('json')
   access_list: string;
 }
