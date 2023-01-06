@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios';
-import { EthereumGethService } from '@/modules/ethereum/services/geth';
 import { DingTalkBotController } from './controllers/bot';
+import { HttpModule } from '@nestjs/axios';
+import { EthModule } from '@/modules/ethereum';
 
 @Module({
-  imports: [HttpModule],
   controllers: [DingTalkBotController],
-  providers: [EthereumGethService],
+  imports: [HttpModule, EthModule],
 })
 export class DingTalkModule {}

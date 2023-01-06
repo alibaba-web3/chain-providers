@@ -33,6 +33,24 @@ export type RPC_EthSyncingResponse = RpcResponse<{
   syncedStorageBytes: string;
 }>;
 
+export interface EthSyncingResponse {
+  currentBlock: number;
+  healedBytecodeBytes: number;
+  healedBytecodes: number;
+  healedTrienodeBytes: number;
+  healedTrienodes: number;
+  healingBytecode: number;
+  healingTrienodes: number;
+  highestBlock: number;
+  startingBlock: number;
+  syncedAccountBytes: number;
+  syncedAccounts: number;
+  syncedBytecodeBytes: number;
+  syncedBytecodes: number;
+  syncedStorage: number;
+  syncedStorageBytes: number;
+}
+
 export type RPC_EthGetBlockByNumberResponse = RpcResponse<{
   baseFeePerGas?: string;
   difficulty: string;
@@ -96,11 +114,28 @@ export class EthereumGethService {
     return res.data;
   }
 
-  eth_syncing() {
-    return this.request<RPC_EthSyncingResponse>({
+  async eth_syncing(): Promise<EthSyncingResponse> {
+    const { result } = await this.request<RPC_EthSyncingResponse>({
       method: 'eth_syncing',
       params: [],
     });
+    return {
+      currentBlock: parseInt(result.currentBlock),
+      healedBytecodeBytes: parseInt(result.healedBytecodeBytes),
+      healedBytecodes: parseInt(result.healedBytecodes),
+      healedTrienodeBytes: parseInt(result.healedTrienodeBytes),
+      healedTrienodes: parseInt(result.healedTrienodes),
+      healingBytecode: parseInt(result.healingBytecode),
+      healingTrienodes: parseInt(result.healingTrienodes),
+      highestBlock: parseInt(result.highestBlock),
+      startingBlock: parseInt(result.startingBlock),
+      syncedAccountBytes: parseInt(result.syncedAccountBytes),
+      syncedAccounts: parseInt(result.syncedAccounts),
+      syncedBytecodeBytes: parseInt(result.syncedBytecodeBytes),
+      syncedBytecodes: parseInt(result.syncedBytecodes),
+      syncedStorage: parseInt(result.syncedStorage),
+      syncedStorageBytes: parseInt(result.syncedStorageBytes),
+    };
   }
 
   async eth_getBlockByNumber(
