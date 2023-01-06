@@ -47,10 +47,8 @@ export class DingTalkBotController {
             content: [
               'eth_syncing',
               '----------------',
-              `block syncing: ${blockSyncingProgress}%`,
-              `current block: ${currentBlock}`,
+              `current block: ${currentBlock} (${blockSyncingProgress}%)`,
               `highest block: ${highestBlock}`,
-              '----------------',
               `synced to mysql: ${latestBlockInMysql?.block_number || 0}`,
             ].join('\n'),
           },
