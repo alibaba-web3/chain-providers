@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumGethService } from './geth';
+import { isDev } from '@/utils';
 
 @Injectable()
 export class EthereumGethToMysqlService {
@@ -15,6 +16,9 @@ export class EthereumGethToMysqlService {
 
   @Timeout(0)
   async syncBlocks() {
+    if (isDev) {
+      return console.log('[dev] stop syncBlocks');
+    }
     const block = await this.getLatestBlockFromMysql();
     await this.syncBlocksFromNumber(block ? block.block_number + 1 : 0);
   }
