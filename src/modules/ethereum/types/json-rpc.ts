@@ -43,7 +43,7 @@ export namespace EthereumJsonRpc {
   }
 
   export interface Block {
-    hash: string; // not spec
+    hash?: string; // not spec
     parentHash: string;
     sha3Uncles: string;
     miner: string;
