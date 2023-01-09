@@ -28,22 +28,29 @@ export class DingTalkBotController {
 
   @Post()
   async index(@Body() body: RequestBody) {
+    console.log('/dingtalk/bot body:', body);
     const { msgtype, text } = body;
     if (msgtype === 'text' && text.content.trim().toLowerCase() === 'syncing') {
       const syncing = await this.ethereumGethService.eth_syncing();
       if (typeof syncing === 'boolean') {
-        await this.sendText(['eth_syncing', '----------------', 'false'].join('\n'));
+        await this.sendText(['eth_syncing', '----------------', syncing.toString()].join('\n'));
       } else {
         const { currentBlock, highestBlock } = syncing;
-        const blockSyncingProgress = ((currentBlock / highestBlock) * 100).toFixed(1);
+        const gethBlockSyncingProgress = ((currentBlock / highestBlock) * 100).toFixed(1);
         const latestBlockInMysql = await this.ethereumGethToMysqlService.getLatestBlockFromMysql();
+        const latestTransactionInMysql = await this.ethereumGethToMysqlService.getLatestTransactionFromMysql();
+        const mysqlBlockSyncingProgress = (((latestBlockInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
+        const mysqlTransactionSyncingProgress = (((latestTransactionInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
         await this.sendText(
           [
             'eth_syncing',
-            '----------------',
-            `current block: ${currentBlock} (${blockSyncingProgress}%)`,
+            '- - - - - - - - - - - - - - -',
+            `current block: ${currentBlock} (${gethBlockSyncingProgress}%)`,
             `highest block: ${highestBlock}`,
-            `synced to mysql: ${latestBlockInMysql?.block_number || 0}`,
+            '\nmysql_syncing',
+            '- - - - - - - - - - - - - - -',
+            `blocks: ${mysqlBlockSyncingProgress}%`,
+            `transactions: ${mysqlTransactionSyncingProgress}%`,
           ].join('\n'),
         );
       }
