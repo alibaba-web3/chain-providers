@@ -2,16 +2,26 @@ import { Controller, Post, Body } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { EthereumGethService } from '@/modules/ethereum/services/geth';
 import { EthereumGethToMysqlService } from '@/modules/ethereum/services/geth-to-mysql';
-import { DINGTALK_BOT_URLS } from '@/constants';
+import { DingTalkBotUrls } from '@/constants';
 import { firstValueFrom } from 'rxjs';
 
-const DINGTALK_BOT_URL = DINGTALK_BOT_URLS[process.env.DINGTALK_BOT];
-
-interface RequestBody {
+interface MessageBody {
+  msgId: string;
   msgtype: string;
-  text: {
-    content: string;
-  };
+  text: { content: string };
+  senderId: string;
+  senderNick: string;
+  isAdmin: boolean;
+  conversationId: string;
+  conversationTitle: string;
+  conversationType: string;
+  atUsers: { dingtalkId: string }[];
+  isInAtList: boolean;
+  chatbotUserId: string;
+  robotCode: string;
+  createAt: number;
+  sessionWebhook: string;
+  sessionWebhookExpiredTime: number;
 }
 
 @Controller('/dingtalk/bot')
@@ -22,18 +32,19 @@ export class DingTalkBotController {
     private ethereumGethToMysqlService: EthereumGethToMysqlService,
   ) {}
 
-  sendText(content: string): Promise<any> {
-    return firstValueFrom(this.httpService.post(DINGTALK_BOT_URL, { msgtype: 'text', text: { content } }));
+  sendText(url: string, content: string): Promise<any> {
+    return firstValueFrom(this.httpService.post(url, { msgtype: 'text', text: { content } }));
   }
 
   @Post()
-  async index(@Body() body: RequestBody) {
-    console.log('/dingtalk/bot body:', body);
-    const { msgtype, text } = body;
+  async index(@Body() body: MessageBody) {
+    const { conversationId, msgtype, text } = body;
+    const url = DingTalkBotUrls[conversationId];
+    if (!url) return console.log('[dingtalk/bot] conversation id not in whitelist. message body:', body);
     if (msgtype === 'text' && text.content.trim().toLowerCase() === 'syncing') {
       const syncing = await this.ethereumGethService.eth_syncing();
       if (typeof syncing === 'boolean') {
-        await this.sendText(['eth_syncing', '----------------', syncing.toString()].join('\n'));
+        await this.sendText(url, ['eth_syncing', '----------------', syncing.toString()].join('\n'));
       } else {
         const { currentBlock, highestBlock } = syncing;
         const gethBlockSyncingProgress = ((currentBlock / highestBlock) * 100).toFixed(1);
@@ -42,6 +53,7 @@ export class DingTalkBotController {
         const mysqlBlockSyncingProgress = (((latestBlockInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
         const mysqlTransactionSyncingProgress = (((latestTransactionInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
         await this.sendText(
+          url,
           [
             'eth_syncing',
             '- - - - - - - - - - - - - - -',
