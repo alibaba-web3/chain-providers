@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { EthereumBlocks } from './ethereum-blocks';
 
 @Entity()
@@ -9,11 +9,18 @@ export class EthereumTransactions {
   @Column('int', { unsigned: true })
   transaction_index: number;
 
-  @ManyToOne(() => EthereumBlocks, (block) => block.block_number)
+  @Column('int', { unsigned: true })
   block_number: number;
 
-  @ManyToOne(() => EthereumBlocks, (block) => block.block_hash)
+  @Column('char', { length: 66 })
   block_hash: string;
+
+  @ManyToOne(() => EthereumBlocks, (block) => block.transactions)
+  @JoinColumn([
+    { name: 'block_number', referencedColumnName: 'block_number' },
+    { name: 'block_hash', referencedColumnName: 'block_hash' },
+  ])
+  block: EthereumBlocks;
 
   @Column('datetime')
   block_timestamp: Date;
@@ -45,6 +52,9 @@ export class EthereumTransactions {
   @Column('bigint', { unsigned: true })
   effective_gas_price: number;
 
+  @Column('bigint', { unsigned: true })
+  cumulative_gas_used: number;
+
   @Column('boolean')
   success: boolean;
 
@@ -52,7 +62,7 @@ export class EthereumTransactions {
   nonce: number;
 
   @Column('varchar', { length: 20 })
-  type: 'Legacy' | 'AccessList' | 'DynamicFee';
+  type: string;
 
   @Column('json')
   access_list: string;

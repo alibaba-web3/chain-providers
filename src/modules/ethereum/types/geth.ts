@@ -42,10 +42,11 @@ export namespace EthereumGethServiceResponse {
   }
 
   export interface Transaction {
+    hash: string;
     blockHash: string;
     blockNumber: number;
     transactionIndex: number;
-    type: string;
+    type: number;
     nonce: number;
     from: string;
     to: string;

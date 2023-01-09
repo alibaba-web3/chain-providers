@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { EthereumJsonRpcRequest, EthereumJsonRpcResponse, EthereumJsonRpc } from '../types/json-rpc';
-import { EthereumGethServiceResponse } from '../types/geth-service';
+import { EthereumGethServiceResponse } from '../types/geth';
 
 const transformSyncing = (syncing: EthereumJsonRpc.Syncing): EthereumGethServiceResponse.Syncing => ({
   startingBlock: parseInt(syncing.startingBlock),
@@ -42,32 +42,30 @@ const transformBlock = (block: EthereumJsonRpc.Block): EthereumGethServiceRespon
 
 const transformTransaction = (transaction: EthereumJsonRpc.Transaction): EthereumGethServiceResponse.Transaction => ({
   ...transaction,
+  hash: transaction.hash || '',
   blockHash: transaction.blockHash || '',
   blockNumber: transaction.blockNumber ? parseInt(transaction.blockNumber) : 0,
   transactionIndex: transaction.transactionIndex ? parseInt(transaction.transactionIndex) : 0,
+  type: parseInt(transaction.type),
   nonce: parseInt(transaction.nonce),
   from: transaction.from || '',
   to: transaction.to || '',
   gas: parseInt(transaction.gas),
   value: parseInt(transaction.value),
-  gasPrice: (transaction as EthereumJsonRpc.Transaction_legacy).gasPrice
-    ? parseInt((transaction as EthereumJsonRpc.Transaction_legacy).gasPrice)
-    : 0,
+  gasPrice: (transaction as EthereumJsonRpc.Transaction_legacy).gasPrice ? parseInt((transaction as EthereumJsonRpc.Transaction_legacy).gasPrice) : 0,
   maxPriorityFeePerGas: (transaction as EthereumJsonRpc.Transaction_1559).maxPriorityFeePerGas
     ? parseInt((transaction as EthereumJsonRpc.Transaction_1559).maxPriorityFeePerGas)
     : 0,
   maxFeePerGas: (transaction as EthereumJsonRpc.Transaction_1559).maxFeePerGas
     ? parseInt((transaction as EthereumJsonRpc.Transaction_1559).maxFeePerGas)
     : 0,
-  accessList: (transaction as EthereumJsonRpc.Transaction_1559).accessList,
+  accessList: (transaction as EthereumJsonRpc.Transaction_1559).accessList || [],
   chainId: transaction.chainId || '',
   yParity: (transaction as EthereumJsonRpc.Transaction_1559).yParity,
   v: (transaction as EthereumJsonRpc.Transaction_legacy).v || '',
 });
 
-const transformTransactionReceipt = (
-  transactionReceipt: EthereumJsonRpc.TransactionReceipt,
-): EthereumGethServiceResponse.TransactionReceipt => ({
+const transformTransactionReceipt = (transactionReceipt: EthereumJsonRpc.TransactionReceipt): EthereumGethServiceResponse.TransactionReceipt => ({
   ...transactionReceipt,
   transactionIndex: parseInt(transactionReceipt.transactionIndex),
   blockNumber: parseInt(transactionReceipt.blockNumber),
@@ -76,13 +74,11 @@ const transformTransactionReceipt = (
   gasUsed: parseInt(transactionReceipt.gasUsed),
   logs: transactionReceipt.logs.map(transformTransactionLog),
   root: transactionReceipt.root || '',
-  status: transactionReceipt.status ? parseInt(transactionReceipt.status) : 0,
+  status: transactionReceipt.status ? parseInt(transactionReceipt.status) : 1,
   effectiveGasPrice: parseInt(transactionReceipt.effectiveGasPrice),
 });
 
-const transformTransactionLog = (
-  transactionLog: EthereumJsonRpc.TransactionLog,
-): EthereumGethServiceResponse.TransactionLog => ({
+const transformTransactionLog = (transactionLog: EthereumJsonRpc.TransactionLog): EthereumGethServiceResponse.TransactionLog => ({
   ...transactionLog,
   removed: transactionLog.removed || false,
   logIndex: transactionLog.logIndex ? parseInt(transactionLog.logIndex) : 0,
@@ -117,15 +113,36 @@ export class EthereumGethService {
     return result && transformSyncing(result);
   }
 
-  async eth_getBlockByNumber(
-    blockNumber: number | string = 'latest',
-    hydrated = false,
-  ): Promise<EthereumGethServiceResponse.Block | null> {
+  async eth_blockNumber(): Promise<number> {
+    const { result } = await this.request<EthereumJsonRpcResponse.EthBlockNumber>({
+      method: 'eth_blockNumber',
+      params: [],
+    });
+    return result && parseInt(result);
+  }
+
+  async eth_getBlockByNumber(blockNumber: number | string = 'latest', hydrated = false): Promise<EthereumGethServiceResponse.Block | null> {
     const { result } = await this.request<EthereumJsonRpcResponse.EthGetBlockByNumber>({
       method: 'eth_getBlockByNumber',
       params: [typeof blockNumber === 'number' ? `0x${blockNumber.toString(16)}` : blockNumber, hydrated],
     });
     return result && transformBlock(result);
+  }
+
+  async eth_getBlockTransactionCountByHash(blockHash: string): Promise<number> {
+    const { result } = await this.request<EthereumJsonRpcResponse.EthGetBlockTransactionCountByHash>({
+      method: 'eth_getBlockTransactionCountByHash',
+      params: [blockHash],
+    });
+    return result && parseInt(result);
+  }
+
+  async eth_getBlockTransactionCountByNumber(blockNumber: number | string = 'latest'): Promise<number> {
+    const { result } = await this.request<EthereumJsonRpcResponse.EthGetBlockTransactionCountByNumber>({
+      method: 'eth_getBlockTransactionCountByHash',
+      params: [typeof blockNumber === 'number' ? `0x${blockNumber.toString(16)}` : blockNumber],
+    });
+    return result && parseInt(result);
   }
 
   async eth_getTransactionByBlockNumberAndIndex(
@@ -142,9 +159,7 @@ export class EthereumGethService {
     return result && transformTransaction(result);
   }
 
-  async eth_getTransactionReceipt(
-    transactionHash: string,
-  ): Promise<EthereumGethServiceResponse.TransactionReceipt | null> {
+  async eth_getTransactionReceipt(transactionHash: string): Promise<EthereumGethServiceResponse.TransactionReceipt | null> {
     const { result } = await this.request<EthereumJsonRpcResponse.EthGetTransactionReceipt>({
       method: 'eth_getTransactionReceipt',
       params: [transactionHash],

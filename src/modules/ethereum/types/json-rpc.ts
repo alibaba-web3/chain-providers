@@ -18,7 +18,10 @@ export interface EthereumJsonRpcRequest {
 
 export namespace EthereumJsonRpcResponse {
   export type EthSyncing = ResponseWrap<EthereumJsonRpc.Syncing | boolean>;
+  export type EthBlockNumber = ResponseWrap<string>;
   export type EthGetBlockByNumber = ResponseWrap<EthereumJsonRpc.Block>;
+  export type EthGetBlockTransactionCountByHash = ResponseWrap<string>;
+  export type EthGetBlockTransactionCountByNumber = ResponseWrap<string>;
   export type EthGetTransactionByBlockNumberAndIndex = ResponseWrap<EthereumJsonRpc.Transaction>;
   export type EthGetTransactionReceipt = ResponseWrap<EthereumJsonRpc.TransactionReceipt>;
 }
@@ -69,6 +72,7 @@ export namespace EthereumJsonRpc {
   export type Transaction = Transaction_legacy | Transaction_1559 | Transaction_2930;
 
   export interface Transaction_legacy {
+    hash?: string; // not spec
     blockHash?: string; // not spec
     blockNumber?: string; // not spec
     transactionIndex?: string; // not spec
@@ -87,6 +91,7 @@ export namespace EthereumJsonRpc {
   }
 
   export interface Transaction_1559 {
+    hash?: string; // not spec
     blockHash?: string; // not spec
     blockNumber?: string; // not spec
     transactionIndex?: string; // not spec
@@ -107,6 +112,7 @@ export namespace EthereumJsonRpc {
   }
 
   export interface Transaction_2930 {
+    hash?: string; // not spec
     blockHash?: string; // not spec
     blockNumber?: string; // not spec
     transactionIndex?: string; // not spec

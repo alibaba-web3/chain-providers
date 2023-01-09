@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToMany } from 'typeorm';
+import { EthereumTransactions } from './ethereum-transactions';
 
 @Entity()
 export class EthereumBlocks {
@@ -34,4 +35,7 @@ export class EthereumBlocks {
 
   @Column('int', { unsigned: true })
   transactions_count: number;
+
+  @OneToMany(() => EthereumTransactions, (transaction) => transaction.block)
+  transactions: EthereumTransactions[];
 }
