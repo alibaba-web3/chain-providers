@@ -56,9 +56,9 @@ export class EthereumGethToMysqlService {
         timestamp: new Date(block.timestamp),
         transactions_count: block.transactions.length,
       });
-      // console.log(`sync block (${start}) success 🎉`);
+      console.log(`sync block (${start}) success 🎉`);
     } catch (e) {
-      // console.log(`sync block (${start}) error:`, e.message);
+      console.log(`sync block (${start}) error:`, e.message);
     }
     await this.syncBlocksFromNumber(start + 1);
   }
@@ -119,10 +119,10 @@ export class EthereumGethToMysqlService {
           type: ['Legacy', 'AccessList', 'DynamicFee'][transaction.type],
           access_list: JSON.stringify(transaction.accessList),
         });
-        // console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) success 🎉`);
+        console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) success 🎉`);
       }
     } catch (e) {
-      // console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) error:`, e.message);
+      console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) error:`, e.message);
     }
     const next = await this.getNextBlockNumberAndIndex(blockNumber, transactionIndex);
     await this.syncTransactionFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex);

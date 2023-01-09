@@ -1,7 +1,7 @@
 export enum DingTalkConversationIds {
   test = 'cidEp5oQwfzNQu9yC2riTDk+A==',
   web3_genesis_team = 'cidyRgYjzGSSs/QTS0DhMTCVQ==',
-  web3_community = '',
+  web3_community = 'cidOFP6PFyRUDofdPK1x1PZ+g==',
 }
 
 const url = 'https://oapi.dingtalk.com/robot/send?access_token=';
