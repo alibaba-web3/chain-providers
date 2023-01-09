@@ -56,7 +56,7 @@ export namespace EthereumGethServiceResponse {
     gasPrice: number;
     maxPriorityFeePerGas: number;
     maxFeePerGas: number;
-    accessList: TransactionAccess[];
+    accessList: TransactionAccess[] | null;
     chainId: string;
     yParity: string;
     v: string;

@@ -59,7 +59,7 @@ const transformTransaction = (transaction: EthereumJsonRpc.Transaction): Ethereu
   maxFeePerGas: (transaction as EthereumJsonRpc.Transaction_1559).maxFeePerGas
     ? parseInt((transaction as EthereumJsonRpc.Transaction_1559).maxFeePerGas)
     : 0,
-  accessList: (transaction as EthereumJsonRpc.Transaction_1559).accessList || [],
+  accessList: (transaction as EthereumJsonRpc.Transaction_1559).accessList || null,
   chainId: transaction.chainId || '',
   yParity: (transaction as EthereumJsonRpc.Transaction_1559).yParity,
   v: (transaction as EthereumJsonRpc.Transaction_legacy).v || '',
