@@ -21,9 +21,7 @@ export class EthereumGethToMysqlService {
 
   @Timeout(0)
   async syncBlocks() {
-    if (isDev) {
-      return console.log('\n[dev] stop syncBlocks');
-    }
+    if (isDev) return;
     const block = await this.getLatestBlockFromMysql();
     await this.syncBlocksFromNumber(block ? block.block_number + 1 : 0);
   }
@@ -58,18 +56,16 @@ export class EthereumGethToMysqlService {
         timestamp: new Date(block.timestamp),
         transactions_count: block.transactions.length,
       });
-      console.log(`sync block (${start}) success 🎉`);
+      // console.log(`sync block (${start}) success 🎉`);
     } catch (e) {
-      console.log(`sync block (${start}) error:`, e.message);
+      // console.log(`sync block (${start}) error:`, e.message);
     }
     await this.syncBlocksFromNumber(start + 1);
   }
 
   @Timeout(0)
   async syncTransactions() {
-    if (isDev) {
-      return console.log('\n[dev] stop syncTransactions');
-    }
+    if (isDev) return;
     const transaction = await this.getLatestTransactionFromMysql();
     if (transaction) {
       const next = await this.getNextBlockNumberAndIndex(transaction.block_number, transaction.transaction_index);
@@ -123,12 +119,10 @@ export class EthereumGethToMysqlService {
           type: ['Legacy', 'AccessList', 'DynamicFee'][transaction.type],
           access_list: JSON.stringify(transaction.accessList),
         });
-        console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) success 🎉`);
-      } else {
-        console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) not exist`);
+        // console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) success 🎉`);
       }
     } catch (e) {
-      console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) error:`, e.message);
+      // console.log(`sync transaction (block: ${blockNumber}, index: ${transactionIndex}) error:`, e.message);
     }
     const next = await this.getNextBlockNumberAndIndex(blockNumber, transactionIndex);
     await this.syncTransactionFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex);
