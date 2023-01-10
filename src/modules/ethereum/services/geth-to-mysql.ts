@@ -108,7 +108,7 @@ export class EthereumGethToMysqlService {
           to: transaction.to,
           value: transaction.value,
           input: transaction.input,
-          gas_used: transaction.gas,
+          gas_used: transactionReceipt.gasUsed,
           gas_price: transaction.gasPrice,
           max_fee_per_gas: transaction.maxFeePerGas,
           max_priority_fee_per_gas: transaction.maxPriorityFeePerGas,
