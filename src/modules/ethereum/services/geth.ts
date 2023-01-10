@@ -139,7 +139,7 @@ export class EthereumGethService {
 
   async eth_getBlockTransactionCountByNumber(blockNumber: number | string = 'latest'): Promise<number> {
     const { result } = await this.request<EthereumJsonRpcResponse.EthGetBlockTransactionCountByNumber>({
-      method: 'eth_getBlockTransactionCountByHash',
+      method: 'eth_getBlockTransactionCountByNumber',
       params: [typeof blockNumber === 'number' ? `0x${blockNumber.toString(16)}` : blockNumber],
     });
     return result && parseInt(result);
