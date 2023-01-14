@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'chain-providers',
-      script: './dist/main.js',
+      script: './dist/src/main.js',
       env: {},
     },
   ],

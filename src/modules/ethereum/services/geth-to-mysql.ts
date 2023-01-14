@@ -193,11 +193,11 @@ export class EthereumGethToMysqlService {
             topic_3: log.topics[2] || '',
             topic_4: log.topics[3] || '',
           });
-          console.log(`sync transaction (block: ${blockNumber}, tx index: ${transactionIndex}, log index: ${logIndex}) success 🎉`);
+          console.log(`sync log (block: ${blockNumber}, tx index: ${transactionIndex}, log index: ${logIndex}) success 🎉`);
         }
       }
     } catch (e) {
-      console.log(`sync transaction (block: ${blockNumber}, tx index: ${transactionIndex}, log index: ${logIndex}) error:`, e.message);
+      console.log(`sync log (block: ${blockNumber}, tx index: ${transactionIndex}, log index: ${logIndex}) error:`, e.message);
     }
     const next = await this.getNextBlockNumberAndIndexForLog(blockNumber, transactionIndex, logIndex);
     await this.syncLogFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex, next.logIndex);
