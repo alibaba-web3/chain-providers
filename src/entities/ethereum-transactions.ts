@@ -1,5 +1,6 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { EthereumBlocks } from './ethereum-blocks';
+import { EthereumLogs } from './ethereum-logs';
 
 @Entity()
 export class EthereumTransactions {
@@ -14,13 +15,6 @@ export class EthereumTransactions {
 
   @Column('char', { length: 66 })
   block_hash: string;
-
-  @ManyToOne(() => EthereumBlocks, (block) => block.transactions)
-  @JoinColumn([
-    { name: 'block_number', referencedColumnName: 'block_number' },
-    { name: 'block_hash', referencedColumnName: 'block_hash' },
-  ])
-  block: EthereumBlocks;
 
   @Column('datetime')
   block_timestamp: Date;
@@ -66,4 +60,14 @@ export class EthereumTransactions {
 
   @Column('json')
   access_list: string;
+
+  @ManyToOne(() => EthereumBlocks, (block) => block.transactions)
+  @JoinColumn([
+    { name: 'block_number', referencedColumnName: 'block_number' },
+    { name: 'block_hash', referencedColumnName: 'block_hash' },
+  ])
+  block: EthereumBlocks;
+
+  @OneToMany(() => EthereumLogs, (log) => log.transaction)
+  logs: EthereumLogs[];
 }
