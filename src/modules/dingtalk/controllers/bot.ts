@@ -50,19 +50,22 @@ export class DingTalkBotController {
         const gethBlockSyncingProgress = ((currentBlock / highestBlock) * 100).toFixed(1);
         const latestBlockInMysql = await this.ethereumGethToMysqlService.getLatestBlockFromMysql();
         const latestTransactionInMysql = await this.ethereumGethToMysqlService.getLatestTransactionFromMysql();
+        const latestLogInMysql = await this.ethereumGethToMysqlService.getLatestLogFromMysql();
         const mysqlBlockSyncingProgress = (((latestBlockInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
         const mysqlTransactionSyncingProgress = (((latestTransactionInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
+        const mysqlLogSyncingProgress = (((latestLogInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
         await this.sendText(
           url,
           [
             'eth_syncing',
             '- - - - - - - - - - - - - - -',
-            `current block: ${currentBlock} (${gethBlockSyncingProgress}%)`,
-            `highest block: ${highestBlock}`,
+            `current_block: ${currentBlock} (${gethBlockSyncingProgress}%)`,
+            `highest_block: ${highestBlock}`,
             '\nmysql_syncing',
             '- - - - - - - - - - - - - - -',
             `blocks: ${mysqlBlockSyncingProgress}%`,
             `transactions: ${mysqlTransactionSyncingProgress}%`,
+            `logs: ${mysqlLogSyncingProgress}%`,
           ].join('\n'),
         );
       }
