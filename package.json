@@ -23,6 +23,7 @@
     "@nestjs/typeorm": "^9.0.1",
     "dotenv": "^16.0.3",
     "mysql2": "^2.3.3",
+    "puppeteer": "^19.5.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
