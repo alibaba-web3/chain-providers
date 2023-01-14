@@ -4,10 +4,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
+import { EthereumLogs } from '@/entities/ethereum-logs';
 import { EthereumGethService } from './geth';
 import { isDev } from '@/utils';
 
-const SYNC_RESTART_TIME = 60 * 60 * 1000;
+// 在已有数据同步完成时，程序会自动停止，然后讲在此时段后重新开始同步新的数据，以保证持续跟上进度
+const syncRestartTime = 60 * 60 * 1000;
+
+// 以太坊的第一条交易在 https://etherscan.io/block/46147
+const blockNumberOfFirstTransaction = 46147;
 
 @Injectable()
 export class EthereumGethToMysqlService {
@@ -16,6 +21,8 @@ export class EthereumGethToMysqlService {
     private ethereumBlocksRepository: Repository<EthereumBlocks>,
     @InjectRepository(EthereumTransactions)
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
+    @InjectRepository(EthereumLogs)
+    private ethereumLogsRepository: Repository<EthereumLogs>,
     private ethereumGethService: EthereumGethService,
   ) {}
 
@@ -41,7 +48,7 @@ export class EthereumGethToMysqlService {
       const block = await this.ethereumGethService.eth_getBlockByNumber(start);
       if (!block) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncBlocksFromNumber(start), SYNC_RESTART_TIME);
+        return setTimeout(() => this.syncBlocksFromNumber(start), syncRestartTime);
       }
       await this.ethereumBlocksRepository.insert({
         block_number: block.number,
@@ -71,8 +78,7 @@ export class EthereumGethToMysqlService {
       const next = await this.getNextBlockNumberAndIndex(transaction.block_number, transaction.transaction_index);
       await this.syncTransactionFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex);
     } else {
-      // 以太坊的第一条交易在 https://etherscan.io/block/46147
-      await this.syncTransactionFromBlockNumberAndIndex(46147, 0);
+      await this.syncTransactionFromBlockNumberAndIndex(blockNumberOfFirstTransaction, 0);
     }
   }
 
@@ -92,7 +98,7 @@ export class EthereumGethToMysqlService {
       const currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
       if (blockNumber > currentBlockNumber) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncTransactionFromBlockNumberAndIndex(blockNumber, transactionIndex), SYNC_RESTART_TIME);
+        return setTimeout(() => this.syncTransactionFromBlockNumberAndIndex(blockNumber, transactionIndex), syncRestartTime);
       }
       const transaction = await this.ethereumGethService.eth_getTransactionByBlockNumberAndIndex(blockNumber, transactionIndex);
       if (transaction) {
@@ -133,5 +139,83 @@ export class EthereumGethToMysqlService {
     return transactionIndex < transactionCount - 1
       ? { blockNumber, transactionIndex: transactionIndex + 1 }
       : { blockNumber: blockNumber + 1, transactionIndex: 0 };
+  }
+
+  @Timeout(0)
+  async syncLogs() {
+    if (isDev) return;
+    const log = await this.getLatestLogFromMysql();
+    if (log) {
+      const next = await this.getNextBlockNumberAndIndexForLog(log.block_number, log.transaction_index, log.log_index);
+      await this.syncLogFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex, next.logIndex);
+    } else {
+      await this.syncLogFromBlockNumberAndIndex(blockNumberOfFirstTransaction, 0, 0);
+    }
+  }
+
+  async getLatestLogFromMysql() {
+    const [log] = await this.ethereumLogsRepository.find({
+      order: {
+        block_number: 'DESC',
+        transaction_index: 'DESC',
+        log_index: 'DESC',
+      },
+      take: 1,
+    });
+    return log;
+  }
+
+  async syncLogFromBlockNumberAndIndex(blockNumber: number, transactionIndex: number, logIndex: number) {
+    try {
+      const currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
+      if (blockNumber > currentBlockNumber) {
+        // 没有数据了，等一段时间后有新的数据了再重新开始
+        return setTimeout(() => this.syncLogFromBlockNumberAndIndex(blockNumber, transactionIndex, logIndex), syncRestartTime);
+      }
+      const transaction = await this.ethereumGethService.eth_getTransactionByBlockNumberAndIndex(blockNumber, transactionIndex);
+      if (transaction) {
+        const transactionReceipt = await this.ethereumGethService.eth_getTransactionReceipt(transaction.hash);
+        const log = transactionReceipt.logs[logIndex];
+        if (log) {
+          const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber);
+          await this.ethereumLogsRepository.insert({
+            log_index: logIndex,
+            transaction_hash: transaction.hash,
+            transaction_index: transaction.transactionIndex,
+            block_number: block.number,
+            block_hash: block.hash,
+            block_timestamp: new Date(block.timestamp),
+            contract_address: log.address,
+            data: log.data,
+            topics_count: log.topics.length,
+            topic_1: log.topics[0] || '',
+            topic_2: log.topics[1] || '',
+            topic_3: log.topics[2] || '',
+            topic_4: log.topics[3] || '',
+          });
+          console.log(`sync transaction (block: ${blockNumber}, tx index: ${transactionIndex}, log index: ${logIndex}) success 🎉`);
+        }
+      }
+    } catch (e) {
+      console.log(`sync transaction (block: ${blockNumber}, tx index: ${transactionIndex}, log index: ${logIndex}) error:`, e.message);
+    }
+    const next = await this.getNextBlockNumberAndIndexForLog(blockNumber, transactionIndex, logIndex);
+    await this.syncLogFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex, next.logIndex);
+  }
+
+  async getNextBlockNumberAndIndexForLog(blockNumber: number, transactionIndex: number, logIndex: number) {
+    const transaction = await this.ethereumGethService.eth_getTransactionByBlockNumberAndIndex(blockNumber, transactionIndex);
+    if (transaction) {
+      const transactionReceipt = await this.ethereumGethService.eth_getTransactionReceipt(transaction.hash);
+      if (logIndex < transactionReceipt.logs.length - 1) {
+        return { blockNumber, transactionIndex, logIndex: logIndex + 1 };
+      }
+    }
+    const transactionCount = await this.ethereumGethService.eth_getBlockTransactionCountByNumber(blockNumber);
+    if (transactionIndex < transactionCount - 1) {
+      return { blockNumber, transactionIndex: transactionIndex + 1, logIndex: 0 };
+    } else {
+      return { blockNumber: blockNumber + 1, transactionIndex: 0, logIndex: 0 };
+    }
   }
 }

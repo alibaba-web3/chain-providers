@@ -7,6 +7,9 @@ export class EthereumLogs {
   @PrimaryColumn('int', { unsigned: true })
   log_id: number;
 
+  @Column('int', { unsigned: true })
+  log_index: number;
+
   @Column('char', { length: 66 })
   transaction_hash: string;
 
