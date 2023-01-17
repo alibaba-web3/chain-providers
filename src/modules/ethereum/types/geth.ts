@@ -97,4 +97,18 @@ export namespace EthereumGethServiceResponse {
     address: string;
     storageKeys: string[];
   }
+
+  export interface TraceTransaction {
+    type: 'CALL' | 'STATICCALL' | 'DELEGATECALL' | 'CREATE';
+    from: string;
+    to: string;
+    value: number;
+    gas: number;
+    gasUsed: number;
+    input: string;
+    output: string;
+    error?: string;
+    revertReason?: string;
+    calls: TraceTransaction[];
+  }
 }

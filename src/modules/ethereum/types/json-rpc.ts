@@ -24,6 +24,7 @@ export namespace EthereumJsonRpcResponse {
   export type EthGetBlockTransactionCountByNumber = ResponseWrap<string>;
   export type EthGetTransactionByBlockNumberAndIndex = ResponseWrap<EthereumJsonRpc.Transaction>;
   export type EthGetTransactionReceipt = ResponseWrap<EthereumJsonRpc.TransactionReceipt>;
+  export type DebugTraceTransaction = ResponseWrap<EthereumJsonRpc.TraceTransaction>;
 }
 
 export namespace EthereumJsonRpc {
@@ -163,5 +164,19 @@ export namespace EthereumJsonRpc {
   export interface TransactionAccess {
     address: string;
     storageKeys: string[];
+  }
+
+  export interface TraceTransaction {
+    type: 'CALL' | 'STATICCALL' | 'DELEGATECALL' | 'CREATE';
+    from: string;
+    to: string;
+    value?: string;
+    gas: string;
+    gasUsed: string;
+    input: string;
+    output: string;
+    error?: string;
+    revertReason?: string;
+    calls?: TraceTransaction[];
   }
 }

@@ -37,15 +37,6 @@ export class EthereumTraces {
   @Column('varchar', { length: 20 })
   type: string;
 
-  @Column('varchar', { length: 20 })
-  call_type: string;
-
-  @Column('char', { length: 42 })
-  contract_address: string;
-
-  @Column('char', { length: 42 })
-  refund_address: string;
-
   @Column('char', { length: 42 })
   from: string;
 
@@ -67,8 +58,8 @@ export class EthereumTraces {
   @Column('text')
   output: string;
 
-  @Column('text')
-  code: string;
+  @Column('char', { length: 8 })
+  method_id: string;
 
   @Column('text')
   error: string;

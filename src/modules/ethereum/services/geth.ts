@@ -89,6 +89,14 @@ const transformTransactionLog = (transactionLog: EthereumJsonRpc.TransactionLog)
   data: transactionLog.data || '',
 });
 
+const transformTraceTransaction = (traceTransaction: EthereumJsonRpc.TraceTransaction): EthereumGethServiceResponse.TraceTransaction => ({
+  ...traceTransaction,
+  value: traceTransaction.value ? parseInt(traceTransaction.value) : 0,
+  gas: parseInt(traceTransaction.gas),
+  gasUsed: parseInt(traceTransaction.gasUsed),
+  calls: traceTransaction.calls?.map(transformTraceTransaction) || [],
+});
+
 @Injectable()
 export class EthereumGethService {
   constructor(private httpService: HttpService) {}
@@ -165,5 +173,13 @@ export class EthereumGethService {
       params: [transactionHash],
     });
     return result && transformTransactionReceipt(result);
+  }
+
+  async debug_traceTransaction_callTracer(transactionHash: string): Promise<EthereumGethServiceResponse.TraceTransaction | null> {
+    const { result } = await this.request<EthereumJsonRpcResponse.DebugTraceTransaction>({
+      method: 'debug_traceTransaction',
+      params: [transactionHash, { tracer: 'callTracer' }],
+    });
+    return result && transformTraceTransaction(result);
   }
 }
