@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { EthereumJsonRpcController } from './controllers/json-rpc';
-import { EthereumBlocksService } from './services/blocks';
 import { EthereumGethToMysqlService } from './services/geth-to-mysql';
 import { EthereumGethService } from './services/geth';
 import { HttpModule } from '@nestjs/axios';
@@ -12,7 +11,7 @@ import { EthereumTraces } from '@/entities/ethereum-traces';
 
 @Module({
   controllers: [EthereumJsonRpcController],
-  providers: [EthereumBlocksService, EthereumGethToMysqlService, EthereumGethService],
+  providers: [EthereumGethToMysqlService, EthereumGethService],
   imports: [HttpModule, TypeOrmModule.forFeature([EthereumBlocks, EthereumTransactions, EthereumLogs, EthereumTraces])],
   exports: [EthereumGethToMysqlService, EthereumGethService],
 })
