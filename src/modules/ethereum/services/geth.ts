@@ -94,6 +94,8 @@ const transformTraceTransaction = (traceTransaction: EthereumJsonRpc.TraceTransa
   value: traceTransaction.value ? parseInt(traceTransaction.value) : 0,
   gas: parseInt(traceTransaction.gas),
   gasUsed: parseInt(traceTransaction.gasUsed),
+  error: traceTransaction.error || '',
+  revertReason: traceTransaction.revertReason || '',
   calls: traceTransaction.calls?.map(transformTraceTransaction) || [],
 });
 

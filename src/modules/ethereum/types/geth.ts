@@ -107,8 +107,8 @@ export namespace EthereumGethServiceResponse {
     gasUsed: number;
     input: string;
     output: string;
-    error?: string;
-    revertReason?: string;
+    error: string;
+    revertReason: string;
     calls: TraceTransaction[];
   }
 }
