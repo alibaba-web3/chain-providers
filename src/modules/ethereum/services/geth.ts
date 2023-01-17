@@ -177,6 +177,14 @@ export class EthereumGethService {
     return result && transformTransactionReceipt(result);
   }
 
+  async net_peerCount(): Promise<number> {
+    const { result } = await this.request<EthereumJsonRpcResponse.NetPeerCount>({
+      method: 'net_peerCount',
+      params: [],
+    });
+    return result && parseInt(result);
+  }
+
   async debug_traceTransaction_callTracer(transactionHash: string): Promise<EthereumGethServiceResponse.TraceTransaction | null> {
     const { result } = await this.request<EthereumJsonRpcResponse.DebugTraceTransaction>({
       method: 'debug_traceTransaction',

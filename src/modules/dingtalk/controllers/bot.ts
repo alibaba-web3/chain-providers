@@ -42,16 +42,18 @@ export class DingTalkBotController {
     const url = DingTalkBotUrls[conversationId];
     if (!url) return console.log('[dingtalk/bot] conversation id not in whitelist. message body:', body);
     if (msgtype === 'text' && text.content.trim().toLowerCase() === 'syncing') {
-      const [syncing, currentBlockNumber, latestBlockInMysql, latestTransactionInMysql, latestLogInMysql, latestTraceFromMysql] = await Promise.all([
-        this.ethereumGethService.eth_syncing(),
-        this.ethereumGethService.eth_blockNumber(),
-        this.ethereumGethToMysqlService.getLatestBlockFromMysql(),
-        this.ethereumGethToMysqlService.getLatestTransactionFromMysql(),
-        this.ethereumGethToMysqlService.getLatestLogFromMysql(),
-        this.ethereumGethToMysqlService.getLatestTraceFromMysql(),
-      ]);
+      const [peerCount, syncing, currentBlockNumber, latestBlockInMysql, latestTransactionInMysql, latestLogInMysql, latestTraceFromMysql] =
+        await Promise.all([
+          this.ethereumGethService.net_peerCount(),
+          this.ethereumGethService.eth_syncing(),
+          this.ethereumGethService.eth_blockNumber(),
+          this.ethereumGethToMysqlService.getLatestBlockFromMysql(),
+          this.ethereumGethToMysqlService.getLatestTransactionFromMysql(),
+          this.ethereumGethToMysqlService.getLatestLogFromMysql(),
+          this.ethereumGethToMysqlService.getLatestTraceFromMysql(),
+        ]);
       const texts = [];
-      texts.push('eth_syncing');
+      texts.push(`eth_syncing (peers: ${peerCount})`);
       texts.push('- - - - - - - - - - - - - - -');
       if (typeof syncing === 'boolean') {
         texts.push(syncing.toString());

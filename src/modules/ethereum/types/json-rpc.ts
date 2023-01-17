@@ -24,6 +24,7 @@ export namespace EthereumJsonRpcResponse {
   export type EthGetBlockTransactionCountByNumber = ResponseWrap<string>;
   export type EthGetTransactionByBlockNumberAndIndex = ResponseWrap<EthereumJsonRpc.Transaction>;
   export type EthGetTransactionReceipt = ResponseWrap<EthereumJsonRpc.TransactionReceipt>;
+  export type NetPeerCount = ResponseWrap<string>;
   export type DebugTraceTransaction = ResponseWrap<EthereumJsonRpc.TraceTransaction>;
 }
 
