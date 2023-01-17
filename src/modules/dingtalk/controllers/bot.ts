@@ -42,33 +42,36 @@ export class DingTalkBotController {
     const url = DingTalkBotUrls[conversationId];
     if (!url) return console.log('[dingtalk/bot] conversation id not in whitelist. message body:', body);
     if (msgtype === 'text' && text.content.trim().toLowerCase() === 'syncing') {
-      const syncing = await this.ethereumGethService.eth_syncing();
+      const [syncing, currentBlockNumber, latestBlockInMysql, latestTransactionInMysql, latestLogInMysql, latestTraceFromMysql] = await Promise.all([
+        this.ethereumGethService.eth_syncing(),
+        this.ethereumGethService.eth_blockNumber(),
+        this.ethereumGethToMysqlService.getLatestBlockFromMysql(),
+        this.ethereumGethToMysqlService.getLatestTransactionFromMysql(),
+        this.ethereumGethToMysqlService.getLatestLogFromMysql(),
+        this.ethereumGethToMysqlService.getLatestTraceFromMysql(),
+      ]);
+      const texts = [];
+      texts.push('eth_syncing');
+      texts.push('- - - - - - - - - - - - - - -');
       if (typeof syncing === 'boolean') {
-        await this.sendText(url, ['eth_syncing', '----------------', syncing.toString()].join('\n'));
+        texts.push(syncing.toString());
       } else {
-        const { currentBlock, highestBlock } = syncing;
-        const gethBlockSyncingProgress = ((currentBlock / highestBlock) * 100).toFixed(1);
-        const latestBlockInMysql = await this.ethereumGethToMysqlService.getLatestBlockFromMysql();
-        const latestTransactionInMysql = await this.ethereumGethToMysqlService.getLatestTransactionFromMysql();
-        const latestLogInMysql = await this.ethereumGethToMysqlService.getLatestLogFromMysql();
-        const mysqlBlockSyncingProgress = (((latestBlockInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
-        const mysqlTransactionSyncingProgress = (((latestTransactionInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
-        const mysqlLogSyncingProgress = (((latestLogInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
-        await this.sendText(
-          url,
-          [
-            'eth_syncing',
-            '- - - - - - - - - - - - - - -',
-            `current_block: ${currentBlock} (${gethBlockSyncingProgress}%)`,
-            `highest_block: ${highestBlock}`,
-            '\nmysql_syncing',
-            '- - - - - - - - - - - - - - -',
-            `blocks: ${mysqlBlockSyncingProgress}%`,
-            `transactions: ${mysqlTransactionSyncingProgress}%`,
-            `logs: ${mysqlLogSyncingProgress}%`,
-          ].join('\n'),
-        );
+        const gethBlockSyncingProgress = ((syncing.currentBlock / syncing.highestBlock) * 100).toFixed(1);
+        texts.push(`current_block: ${syncing.currentBlock} (${gethBlockSyncingProgress}%)`);
+        texts.push(`highest_block: ${syncing.highestBlock}`);
       }
+      texts.push('\nmysql_syncing');
+      texts.push('- - - - - - - - - - - - - - -');
+      const highestBlock = typeof syncing === 'boolean' ? currentBlockNumber : syncing.highestBlock;
+      const mysqlBlockSyncingProgress = (((latestBlockInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
+      const mysqlTransactionSyncingProgress = (((latestTransactionInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
+      const mysqlLogSyncingProgress = (((latestLogInMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
+      const mysqlTraceSyncingProgress = (((latestTraceFromMysql?.block_number || 0) / highestBlock) * 100).toFixed(1);
+      texts.push(`blocks: ${mysqlBlockSyncingProgress}%`);
+      texts.push(`transactions: ${mysqlTransactionSyncingProgress}%`);
+      texts.push(`logs: ${mysqlLogSyncingProgress}%`);
+      texts.push(`traces: ${mysqlTraceSyncingProgress}%`);
+      await this.sendText(url, texts.join('\n'));
     }
   }
 }
