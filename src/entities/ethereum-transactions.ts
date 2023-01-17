@@ -1,6 +1,7 @@
 import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { EthereumBlocks } from './ethereum-blocks';
 import { EthereumLogs } from './ethereum-logs';
+import { EthereumTraces } from './ethereum-traces';
 
 @Entity()
 export class EthereumTransactions {
@@ -70,4 +71,7 @@ export class EthereumTransactions {
 
   @OneToMany(() => EthereumLogs, (log) => log.transaction)
   logs: EthereumLogs[];
+
+  @OneToMany(() => EthereumTraces, (trace) => trace.transaction)
+  traces: EthereumTraces[];
 }

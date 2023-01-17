@@ -11,6 +11,7 @@ import { EthModule } from './modules/ethereum';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumLogs } from '@/entities/ethereum-logs';
+import { EthereumTraces } from '@/entities/ethereum-traces';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { EthereumLogs } from '@/entities/ethereum-logs';
       password: process.env.MYSQL_PASSWORD,
       database: 'blockchain',
       charset: 'utf8mb4',
-      entities: [EthereumBlocks, EthereumTransactions, EthereumLogs],
+      entities: [EthereumBlocks, EthereumTransactions, EthereumLogs, EthereumTraces],
     }),
     ScheduleModule.forRoot(),
     DingTalkModule,
