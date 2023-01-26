@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { EthereumJsonRpcController } from './controllers/json-rpc';
-import { EthereumGethToMysqlService } from './services/geth-to-mysql';
+import { EthereumSyncGethToMysqlService_blocks } from './services/sync-to-mysql/blocks';
+import { EthereumSyncGethToMysqlService_transactions } from './services/sync-to-mysql/transactions';
+import { EthereumSyncGethToMysqlService_logs } from './services/sync-to-mysql/logs';
+import { EthereumSyncGethToMysqlService_traces } from './services/sync-to-mysql/traces';
 import { EthereumGethService } from './services/geth';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,8 +14,20 @@ import { EthereumTraces } from '@/entities/ethereum-traces';
 
 @Module({
   controllers: [EthereumJsonRpcController],
-  providers: [EthereumGethToMysqlService, EthereumGethService],
+  providers: [
+    EthereumSyncGethToMysqlService_blocks,
+    EthereumSyncGethToMysqlService_transactions,
+    EthereumSyncGethToMysqlService_logs,
+    EthereumSyncGethToMysqlService_traces,
+    EthereumGethService,
+  ],
   imports: [HttpModule, TypeOrmModule.forFeature([EthereumBlocks, EthereumTransactions, EthereumLogs, EthereumTraces])],
-  exports: [EthereumGethToMysqlService, EthereumGethService],
+  exports: [
+    EthereumSyncGethToMysqlService_blocks,
+    EthereumSyncGethToMysqlService_transactions,
+    EthereumSyncGethToMysqlService_logs,
+    EthereumSyncGethToMysqlService_traces,
+    EthereumGethService,
+  ],
 })
-export class EthModule {}
+export class EthereumModule {}

@@ -1,7 +1,10 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { EthereumGethService } from '@/modules/ethereum/services/geth';
-import { EthereumGethToMysqlService } from '@/modules/ethereum/services/geth-to-mysql';
+import { EthereumSyncGethToMysqlService_blocks } from '@/modules/ethereum/services/sync-to-mysql/blocks';
+import { EthereumSyncGethToMysqlService_transactions } from '@/modules/ethereum/services/sync-to-mysql/transactions';
+import { EthereumSyncGethToMysqlService_logs } from '@/modules/ethereum/services/sync-to-mysql/logs';
+import { EthereumSyncGethToMysqlService_traces } from '@/modules/ethereum/services/sync-to-mysql/traces';
 import { DingTalkBotUrls } from '@/constants';
 import { firstValueFrom } from 'rxjs';
 
@@ -29,7 +32,10 @@ export class DingTalkBotController {
   constructor(
     private httpService: HttpService,
     private ethereumGethService: EthereumGethService,
-    private ethereumGethToMysqlService: EthereumGethToMysqlService,
+    private ethereumSyncGethToMysqlService_blocks: EthereumSyncGethToMysqlService_blocks,
+    private ethereumSyncGethToMysqlService_transactions: EthereumSyncGethToMysqlService_transactions,
+    private ethereumSyncGethToMysqlService_logs: EthereumSyncGethToMysqlService_logs,
+    private ethereumSyncGethToMysqlService_traces: EthereumSyncGethToMysqlService_traces,
   ) {}
 
   sendText(url: string, content: string): Promise<any> {
@@ -47,10 +53,10 @@ export class DingTalkBotController {
           this.ethereumGethService.net_peerCount(),
           this.ethereumGethService.eth_syncing(),
           this.ethereumGethService.eth_blockNumber(),
-          this.ethereumGethToMysqlService.getLatestBlockFromMysql(),
-          this.ethereumGethToMysqlService.getLatestTransactionFromMysql(),
-          this.ethereumGethToMysqlService.getLatestLogFromMysql(),
-          this.ethereumGethToMysqlService.getLatestTraceFromMysql(),
+          this.ethereumSyncGethToMysqlService_blocks.getLatestBlockFromMysql(),
+          this.ethereumSyncGethToMysqlService_transactions.getLatestTransactionFromMysql(),
+          this.ethereumSyncGethToMysqlService_logs.getLatestLogFromMysql(),
+          this.ethereumSyncGethToMysqlService_traces.getLatestTraceFromMysql(),
         ]);
       const texts = [];
       texts.push(`eth_syncing (peers: ${peerCount})`);

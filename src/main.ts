@@ -7,7 +7,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DingTalkModule } from './modules/dingtalk';
-import { EthModule } from './modules/ethereum';
+import { EthereumModule } from './modules/ethereum';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumLogs } from '@/entities/ethereum-logs';
@@ -26,7 +26,7 @@ import { EthereumTraces } from '@/entities/ethereum-traces';
     }),
     ScheduleModule.forRoot(),
     DingTalkModule,
-    EthModule,
+    EthereumModule,
   ],
 })
 class AppModule {}
