@@ -9,6 +9,12 @@ import { isDev } from '@/utils';
 
 @Injectable()
 export class EthereumSyncGethToMysqlService_transactions {
+  // 当前 geth 已同步的最新区块
+  private currentBlockNumber = 0;
+
+  // 缓存一下区块包含的交易数量 blockNumber => transactionCount
+  private transactionCounts = new Map<number, number>();
+
   constructor(
     @InjectRepository(EthereumTransactions)
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
@@ -18,12 +24,13 @@ export class EthereumSyncGethToMysqlService_transactions {
   @Timeout(0)
   async syncTransactions() {
     if (isDev) return;
-    const transaction = await this.getLatestTransactionFromMysql();
+    const [transaction, blockNumber] = await Promise.all([this.getLatestTransactionFromMysql(), this.ethereumGethService.eth_blockNumber()]);
+    this.currentBlockNumber = blockNumber;
     if (transaction) {
       const next = await this.getNextBlockNumberAndIndex(transaction.block_number, transaction.transaction_index);
-      await this.syncTransactionFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex);
+      this.syncTransactionFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex);
     } else {
-      await this.syncTransactionFromBlockNumberAndIndex(EthereumBlockNumberOfFirstTransaction, 0);
+      this.syncTransactionFromBlockNumberAndIndex(EthereumBlockNumberOfFirstTransaction, 0);
     }
   }
 
@@ -40,10 +47,12 @@ export class EthereumSyncGethToMysqlService_transactions {
 
   async syncTransactionFromBlockNumberAndIndex(blockNumber: number, transactionIndex: number) {
     try {
-      const currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
-      if (blockNumber > currentBlockNumber) {
+      if (blockNumber > this.currentBlockNumber) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncTransactionFromBlockNumberAndIndex(blockNumber, transactionIndex), SyncGethToMysqlRestartTime);
+        return setTimeout(async () => {
+          this.currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
+          this.syncTransactionFromBlockNumberAndIndex(blockNumber, transactionIndex);
+        }, SyncGethToMysqlRestartTime);
       }
       const transaction = await this.ethereumGethService.eth_getTransactionByBlockNumberAndIndex(blockNumber, transactionIndex);
       // 当 transactionIndex = 0 时，可能没有数据
@@ -83,9 +92,20 @@ export class EthereumSyncGethToMysqlService_transactions {
   }
 
   async getNextBlockNumberAndIndex(blockNumber: number, transactionIndex: number) {
-    const transactionCount = await this.ethereumGethService.eth_getBlockTransactionCountByNumber(blockNumber);
+    const transactionCount = await this.getTransactionCount(blockNumber);
     return transactionIndex < transactionCount - 1
       ? { blockNumber, transactionIndex: transactionIndex + 1 }
       : { blockNumber: blockNumber + 1, transactionIndex: 0 };
+  }
+
+  async getTransactionCount(blockNumber: number) {
+    let transactionCount: number;
+    if (this.transactionCounts.has(blockNumber)) {
+      transactionCount = this.transactionCounts.get(blockNumber);
+    } else {
+      transactionCount = await this.ethereumGethService.eth_getBlockTransactionCountByNumber(blockNumber);
+      this.transactionCounts.set(blockNumber, transactionCount);
+    }
+    return transactionCount;
   }
 }
