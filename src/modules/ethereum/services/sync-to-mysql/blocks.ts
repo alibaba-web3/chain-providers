@@ -19,7 +19,7 @@ export class EthereumSyncGethToMysqlService_blocks {
   async syncBlocks() {
     if (isDev) return;
     const block = await this.getLatestBlockFromMysql();
-    await this.syncBlocksFromNumber(block ? block.block_number + 1 : 0);
+    this.syncBlocksFromNumber(block ? block.block_number + 1 : 0);
   }
 
   async getLatestBlockFromMysql() {
@@ -56,6 +56,6 @@ export class EthereumSyncGethToMysqlService_blocks {
     } catch (e) {
       console.log(`sync block (${start}) error:`, e.message);
     }
-    await this.syncBlocksFromNumber(start + 1);
+    this.syncBlocksFromNumber(start + 1);
   }
 }

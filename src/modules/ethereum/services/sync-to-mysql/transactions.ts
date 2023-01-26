@@ -88,7 +88,7 @@ export class EthereumSyncGethToMysqlService_transactions {
       console.log(`sync transaction (block: ${blockNumber}, tx index: ${transactionIndex}) error:`, e.message);
     }
     const next = await this.getNextBlockNumberAndIndex(blockNumber, transactionIndex);
-    await this.syncTransactionFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex);
+    this.syncTransactionFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex);
   }
 
   async getNextBlockNumberAndIndex(blockNumber: number, transactionIndex: number) {

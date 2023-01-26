@@ -31,9 +31,9 @@ export class EthereumSyncGethToMysqlService_logs {
     this.currentBlockNumber = blockNumber;
     if (log) {
       const next = await this.getNextBlockNumberAndIndex(log.block_number, log.transaction_index, log.log_index);
-      await this.syncLogFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex, next.logIndex);
+      this.syncLogFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex, next.logIndex);
     } else {
-      await this.syncLogFromBlockNumberAndIndex(EthereumBlockNumberOfFirstTransaction, 0, 0);
+      this.syncLogFromBlockNumberAndIndex(EthereumBlockNumberOfFirstTransaction, 0, 0);
     }
   }
 
@@ -90,7 +90,7 @@ export class EthereumSyncGethToMysqlService_logs {
       console.log(`sync log (block: ${blockNumber}, tx index: ${transactionIndex}, log index: ${logIndex}) error:`, e.message);
     }
     const next = await this.getNextBlockNumberAndIndex(blockNumber, transactionIndex, logIndex);
-    await this.syncLogFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex, next.logIndex);
+    this.syncLogFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex, next.logIndex);
   }
 
   async getNextBlockNumberAndIndex(blockNumber: number, transactionIndex: number, logIndex: number) {
