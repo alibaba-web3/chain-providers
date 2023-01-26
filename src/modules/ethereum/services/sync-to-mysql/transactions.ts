@@ -99,7 +99,7 @@ export class EthereumSyncGethToMysqlService_transactions {
   }
 
   async getTransactionCount(blockNumber: number) {
-    let transactionCount: number;
+    let transactionCount = 0;
     if (this.transactionCounts.has(blockNumber)) {
       transactionCount = this.transactionCounts.get(blockNumber);
     } else {
