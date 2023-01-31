@@ -54,34 +54,13 @@ export class EthereumSyncGethToMysqlService_transactions {
           this.syncTransactionFromBlockNumberAndIndex(blockNumber, transactionIndex);
         }, SyncGethToMysqlRestartTime);
       }
-      const transaction = await this.ethereumGethService.eth_getTransactionByBlockNumberAndIndex(blockNumber, transactionIndex);
-      // 当 transactionIndex = 0 时，可能没有数据
-      if (transaction) {
-        const [block, transactionReceipt] = await Promise.all([
-          this.ethereumGethService.eth_getBlockByNumber(blockNumber),
-          this.ethereumGethService.eth_getTransactionReceipt(transaction.hash),
-        ]);
-        await this.ethereumTransactionsRepository.insert({
-          transaction_hash: transaction.hash,
-          transaction_index: transaction.transactionIndex,
-          block_number: block.number,
-          block_hash: block.hash,
-          block_timestamp: new Date(block.timestamp),
-          from: transaction.from,
-          to: transaction.to,
-          value: transaction.value,
-          input: transaction.input,
-          gas_used: transactionReceipt.gasUsed,
-          gas_price: transaction.gasPrice,
-          max_fee_per_gas: transaction.maxFeePerGas,
-          max_priority_fee_per_gas: transaction.maxPriorityFeePerGas,
-          effective_gas_price: transactionReceipt.effectiveGasPrice,
-          cumulative_gas_used: transactionReceipt.cumulativeGasUsed,
-          success: transactionReceipt.status === 1,
-          nonce: transaction.nonce,
-          type: ['Legacy', 'AccessList', 'DynamicFee'][transaction.type],
-          access_list: JSON.stringify(transaction.accessList),
-        });
+      const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber, true);
+      // transactions 早期区块可能为空
+      if (block && block.transactions.length > 0) {
+
+        const transactionEntityArr = await Promise.all(block.transactions.map(transaction => this.parseTransaction(block, transaction)));
+
+        await this.ethereumTransactionsRepository.insert(transactionEntityArr);
         console.log(`sync transaction (block: ${blockNumber}, tx index: ${transactionIndex}) success 🎉`);
       }
     } catch (e) {
@@ -89,6 +68,31 @@ export class EthereumSyncGethToMysqlService_transactions {
     }
     const next = await this.getNextBlockNumberAndIndex(blockNumber, transactionIndex);
     this.syncTransactionFromBlockNumberAndIndex(next.blockNumber, next.transactionIndex);
+  }
+
+  async parseTransaction(block, transaction) {
+    const transactionReceipt = await this.ethereumGethService.eth_getTransactionReceipt(transaction.hash);
+    return {
+      transaction_hash: transaction.hash,
+      transaction_index: transaction.transactionIndex,
+      block_number: block.number,
+      block_hash: block.hash,
+      block_timestamp: new Date(block.timestamp),
+      from: transaction.from,
+      to: transaction.to,
+      value: transaction.value,
+      input: transaction.input,
+      gas_used: transactionReceipt.gasUsed,
+      gas_price: transaction.gasPrice,
+      max_fee_per_gas: transaction.maxFeePerGas,
+      max_priority_fee_per_gas: transaction.maxPriorityFeePerGas,
+      effective_gas_price: transactionReceipt.effectiveGasPrice,
+      cumulative_gas_used: transactionReceipt.cumulativeGasUsed,
+      success: transactionReceipt.status === 1,
+      nonce: transaction.nonce,
+      type: ['Legacy', 'AccessList', 'DynamicFee'][transaction.type],
+      access_list: JSON.stringify(transaction.accessList),
+    };
   }
 
   async getNextBlockNumberAndIndex(blockNumber: number, transactionIndex: number) {
