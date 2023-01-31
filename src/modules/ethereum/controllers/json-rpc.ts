@@ -18,10 +18,4 @@ export class EthereumJsonRpcController {
     }
   }
 
-  @Get('/block')
-  async getBlockByNumber(@Query('number') number: string, @Res() res: Response) {
-    const block = await this.ethereumGethService.eth_getBlockByNumber(Number(number), true);
-    res.status(200).send(block);
-  }
-
 }
