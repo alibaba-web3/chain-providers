@@ -1,11 +1,12 @@
 import { Response } from 'express';
-import { Controller, Post, Body, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
 import { EthereumGethService } from '../services/geth';
 import { EthereumJsonRpcRequest } from '../types/json-rpc';
 
 @Controller('/ethereum/json-rpc')
 export class EthereumJsonRpcController {
-  constructor(private ethereumGethService: EthereumGethService) {}
+  constructor(private ethereumGethService: EthereumGethService) {
+  }
 
   @Post()
   async index(@Body() body: EthereumJsonRpcRequest, @Res() res: Response) {
@@ -16,4 +17,11 @@ export class EthereumJsonRpcController {
       res.status(400).send(`rpc method namespace "${namespace}" not supported.`);
     }
   }
+
+  @Get('/block')
+  async getBlockByNumber(@Query('number') number: string, @Res() res: Response) {
+    const block = await this.ethereumGethService.eth_getBlockByNumber(Number(number), true);
+    res.status(200).send(block);
+  }
+
 }
