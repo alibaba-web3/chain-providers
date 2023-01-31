@@ -1,58 +1,77 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { EthereumBlocks } from './ethereum-blocks';
+import { EthereumLogs } from './ethereum-logs';
+import { EthereumTraces } from './ethereum-traces';
 
 @Entity()
 export class EthereumTransactions {
-  @PrimaryColumn()
+  @PrimaryColumn('char', { length: 66 })
   transaction_hash: string;
 
-  @Column()
+  @Column('int', { unsigned: true })
   transaction_index: number;
 
-  @Column()
+  @Column('int', { unsigned: true })
   block_number: number;
 
-  @Column()
+  @Column('char', { length: 66 })
   block_hash: string;
 
-  @Column()
-  block_timestamp: number;
+  @Column('datetime')
+  block_timestamp: Date;
 
-  @Column()
+  @Column('char', { length: 42 })
   from: string;
 
-  @Column()
+  @Column('char', { length: 42 })
   to: string;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   value: number;
 
-  @Column()
+  @Column('text')
   input: string;
 
-  @Column()
+  @Column('int', { unsigned: true })
   gas_used: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   gas_price: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   max_fee_per_gas: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   max_priority_fee_per_gas: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
   effective_gas_price: number;
 
-  @Column()
+  @Column('bigint', { unsigned: true })
+  cumulative_gas_used: number;
+
+  @Column('boolean')
   success: boolean;
 
-  @Column()
+  @Column('int', { unsigned: true })
   nonce: number;
 
-  @Column()
-  type: number;
+  @Column('varchar', { length: 20 })
+  type: string;
 
-  @Column()
+  @Column('json')
   access_list: string;
+
+  @ManyToOne(() => EthereumBlocks, (block) => block.transactions)
+  @JoinColumn([
+    { name: 'block_number', referencedColumnName: 'block_number' },
+    { name: 'block_hash', referencedColumnName: 'block_hash' },
+  ])
+  block: EthereumBlocks;
+
+  @OneToMany(() => EthereumLogs, (log) => log.transaction)
+  logs: EthereumLogs[];
+
+  @OneToMany(() => EthereumTraces, (trace) => trace.transaction)
+  traces: EthereumTraces[];
 }

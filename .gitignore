@@ -1,6 +1,7 @@
 # Compiled output
 /dist
 /node_modules
+/screenshots
 
 # Config
 .env
