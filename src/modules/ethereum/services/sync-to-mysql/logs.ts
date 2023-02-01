@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumLogs } from '@/entities/ethereum-logs';
 import { EthereumGethService } from '../geth';
 import { SyncGethToMysqlRestartTime, EthereumBlockNumberOfFirstTransaction } from '@/constants';
-import { isDev } from '@/utils';
+import { isDev } from '@/constants';
 
 @Injectable()
 export class EthereumSyncGethToMysqlService_logs {
