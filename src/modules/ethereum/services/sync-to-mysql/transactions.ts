@@ -57,9 +57,7 @@ export class EthereumSyncGethToMysqlService_transactions {
       const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber, true);
       // transactions 早期区块可能为空
       if (block && block.transactions.length > 0) {
-
-        const transactionEntityArr = await Promise.all(block.transactions.map(transaction => this.parseTransaction(block, transaction)));
-
+        const transactionEntityArr = await Promise.all(block.transactions.map((transaction) => this.parseTransaction(block, transaction)));
         await this.ethereumTransactionsRepository.insert(transactionEntityArr);
         console.log(`sync transaction (block: ${blockNumber}, tx index: ${transactionIndex}) success 🎉`);
       }
