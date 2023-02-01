@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
 import { EthereumGethService } from '../services/geth';
 import { EthereumJsonRpcRequest } from '../types/json-rpc';
 
