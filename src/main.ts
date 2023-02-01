@@ -12,6 +12,7 @@ import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumLogs } from '@/entities/ethereum-logs';
 import { EthereumTraces } from '@/entities/ethereum-traces';
+import { isProd } from '@/constants';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { EthereumTraces } from '@/entities/ethereum-traces';
       host: process.env.MYSQL_HOST,
       username: process.env.MYSQL_USERNAME,
       password: process.env.MYSQL_PASSWORD,
-      database: 'blockchain',
+      database: isProd ? 'blockchain' : 'blockchain-test',
       charset: 'utf8mb4',
       entities: [EthereumBlocks, EthereumTransactions, EthereumLogs, EthereumTraces],
     }),
