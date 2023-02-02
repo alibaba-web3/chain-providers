@@ -1,4 +1,4 @@
-import { openUrl, delay } from '../src/utils';
+import { openUrl, delay } from '../../src/utils';
 
 const startTime = Date.now();
 
