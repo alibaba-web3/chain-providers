@@ -21,7 +21,7 @@ export class EthereumSyncGethToMysqlService_logs {
     if (isDev) return;
     const log = await this.getLatestLogFromMysql();
     if (log) {
-      // 由于 ethereum_logs 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据，重新同步（insert）
+      // 由于 ethereum_logs 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert
       await this.ethereumLogsRepository.delete({ block_number: log.block_number });
       this.syncLogsFromBlockNumber(log.block_number);
     } else {
