@@ -10,9 +10,6 @@ import { isDev } from '@/constants';
 
 @Injectable()
 export class EthereumSyncGethToMysqlService_transactions {
-  // 当前 geth 已同步的最新区块
-  private currentBlockNumber = 0;
-
   constructor(
     @InjectRepository(EthereumTransactions)
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
@@ -22,8 +19,7 @@ export class EthereumSyncGethToMysqlService_transactions {
   @Timeout(0)
   async syncTransactions() {
     if (isDev) return;
-    const [transaction, blockNumber] = await Promise.all([this.getLatestTransactionFromMysql(), this.ethereumGethService.eth_blockNumber()]);
-    this.currentBlockNumber = blockNumber;
+    const transaction = await this.getLatestTransactionFromMysql();
     if (transaction) {
       this.syncTransactionsFromBlockNumber(transaction.block_number);
     } else {
@@ -44,12 +40,10 @@ export class EthereumSyncGethToMysqlService_transactions {
 
   async syncTransactionsFromBlockNumber(blockNumber: number) {
     try {
-      if (blockNumber > this.currentBlockNumber) {
+      const currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
+      if (blockNumber > currentBlockNumber) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(async () => {
-          this.currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
-          this.syncTransactionsFromBlockNumber(blockNumber);
-        }, SyncGethToMysqlRestartTime);
+        return setTimeout(() => this.syncTransactionsFromBlockNumber(blockNumber), SyncGethToMysqlRestartTime);
       }
       const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber, true);
       const transactions = block.transactions as EthereumGethServiceResponse.Transaction[];
