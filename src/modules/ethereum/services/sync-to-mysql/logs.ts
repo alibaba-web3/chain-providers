@@ -54,12 +54,12 @@ export class EthereumSyncGethToMysqlService_logs {
         const transactionReceipts = await Promise.all(
           transactions.map((transaction) => this.ethereumGethService.eth_getTransactionReceipt(transaction.hash)),
         );
-        const logEntities = transactionReceipts
-          .map((transactionReceipt, transactionIndex) => {
-            return transactionReceipt.logs.map((log, logIndex) => ({
-              log_index: logIndex,
-              transaction_hash: transactions[transactionIndex].hash,
-              transaction_index: transactions[transactionIndex].transactionIndex,
+        const logEntities = transactions
+          .map((transaction, i) =>
+            transactionReceipts[i].logs.map((log, j) => ({
+              log_index: j,
+              transaction_hash: transaction.hash,
+              transaction_index: i,
               block_number: block.number,
               block_hash: block.hash,
               block_timestamp: new Date(block.timestamp),
@@ -70,8 +70,8 @@ export class EthereumSyncGethToMysqlService_logs {
               topic_2: log.topics[1] || '',
               topic_3: log.topics[2] || '',
               topic_4: log.topics[3] || '',
-            }));
-          })
+            })),
+          )
           .flat();
         await this.ethereumLogsRepository.insert(logEntities);
         console.log(`sync log (block: ${blockNumber}, log count: ${logEntities.length}) success 🎉`);

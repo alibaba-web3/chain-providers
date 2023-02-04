@@ -34,6 +34,7 @@ export class EthereumSyncGethToMysqlService_traces {
       order: {
         block_number: 'DESC',
         transaction_index: 'DESC',
+        // 实际上 traces 还有一层根据 trace_address 排序，此处忽略
       },
       take: 1,
     });
@@ -90,7 +91,7 @@ export class EthereumSyncGethToMysqlService_traces {
     parentTraceAddress: number[] = [],
   ) {
     if (!calls || calls.length === 0) return [];
-    let traceEntities = [];
+    let traceEntities: Partial<EthereumTraces>[] = [];
     for (let i = 0; i < calls.length; i++) {
       const call = calls[i];
       const traceAddress = parentTraceAddress.concat(i);
