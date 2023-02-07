@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { SyncGethToMysqlRestartTime, EthereumBlockNumberOfFirstTransaction } from '@/constants';
+import { syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
 import { isDev } from '@/constants';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class EthereumSyncGethToMysqlService_transactions {
     if (transaction) {
       this.syncTransactionsFromBlockNumber(transaction.block_number);
     } else {
-      this.syncTransactionsFromBlockNumber(EthereumBlockNumberOfFirstTransaction);
+      this.syncTransactionsFromBlockNumber(ethereumBlockNumberOfFirstTransaction);
     }
   }
 
@@ -43,7 +43,7 @@ export class EthereumSyncGethToMysqlService_transactions {
       const currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
       if (blockNumber > currentBlockNumber) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncTransactionsFromBlockNumber(blockNumber), SyncGethToMysqlRestartTime);
+        return setTimeout(() => this.syncTransactionsFromBlockNumber(blockNumber), syncGethToMysqlRestartTime);
       }
       const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber, true);
       const transactions = block.transactions as EthereumGethServiceResponse.Transaction[];

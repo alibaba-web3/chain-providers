@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumGethService } from '../geth';
-import { SyncGethToMysqlRestartTime } from '@/constants';
+import { syncGethToMysqlRestartTime } from '@/constants';
 import { isDev } from '@/constants';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class EthereumSyncGethToMysqlService_blocks {
       const block = await this.ethereumGethService.eth_getBlockByNumber(start);
       if (!block) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncBlocksFromNumber(start), SyncGethToMysqlRestartTime);
+        return setTimeout(() => this.syncBlocksFromNumber(start), syncGethToMysqlRestartTime);
       }
       await this.ethereumBlocksRepository.insert({
         block_number: block.number,
