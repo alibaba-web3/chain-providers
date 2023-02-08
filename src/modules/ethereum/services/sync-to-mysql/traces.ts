@@ -7,7 +7,6 @@ import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
 import { syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
 import { isDev } from '@/constants';
-import e from 'express';
 
 @Injectable()
 export class EthereumSyncGethToMysqlService_traces {
