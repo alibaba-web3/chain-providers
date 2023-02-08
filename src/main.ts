@@ -25,7 +25,7 @@ import { isProd } from '@/constants';
       host: process.env.MYSQL_HOST,
       username: process.env.MYSQL_USERNAME,
       password: process.env.MYSQL_PASSWORD,
-      database: isProd ? 'blockchain' : 'blockchain',
+      database: 'blockchain',
       charset: 'utf8mb4',
       entities: [
         EthereumBlocks,
