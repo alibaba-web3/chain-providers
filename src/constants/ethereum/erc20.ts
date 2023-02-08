@@ -1,4 +1,4 @@
-interface ERC20Contract {
+export interface ERC20Contract {
   contractAddress: string;
   creationTransactionHash: string | null;
   isStable: boolean;
