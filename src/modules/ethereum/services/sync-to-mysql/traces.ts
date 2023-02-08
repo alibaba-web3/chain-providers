@@ -33,10 +33,12 @@ export class EthereumSyncGethToMysqlService_traces {
   }
 
   async getLatestNTraceFromMysql(step: number) {
-    const traces = await this.ethereumTracesRepository.createQueryBuilder("trace")
-    .groupBy("trace.block_number")
-    .orderBy("trace.block_number", "DESC")
-    .limit(step).getMany();
+    const traces = await this.ethereumTracesRepository
+      .createQueryBuilder('trace')
+      .groupBy('trace.block_number')
+      .orderBy('trace.block_number', 'DESC')
+      .limit(step)
+      .getMany();
     return traces;
   }
 
