@@ -25,7 +25,7 @@ import { isProd } from '@/constants';
       host: process.env.MYSQL_HOST,
       username: process.env.MYSQL_USERNAME,
       password: process.env.MYSQL_PASSWORD,
-      database: isProd ? 'blockchain' : 'blockchain-test',
+      database: isProd ? 'blockchain' : 'blockchain',
       charset: 'utf8mb4',
       entities: [
         EthereumBlocks,
@@ -47,7 +47,7 @@ class AppModule {}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(80);
+  await app.listen(process.env.PORT ? process.env.PORT : 80);
 }
 
 bootstrap();
