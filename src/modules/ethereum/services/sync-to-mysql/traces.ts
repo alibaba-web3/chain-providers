@@ -69,6 +69,7 @@ export class EthereumSyncGethToMysqlService_traces {
             console.log(`sync traces (block: ${block.number}, trace count: ${traceEntities.length}) success 🎉`);
           }
         }
+        return;
       } else {
         let blockNumber = firstBlockNumber;
         const blockNumbers = [];
