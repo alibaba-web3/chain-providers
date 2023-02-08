@@ -18,15 +18,26 @@ export class EthereumSyncGethToMysqlService_traces {
 
   @Timeout(0)
   async syncTraces() {
+    const step = 10;
     if (isDev) return;
-    const trace = await this.getLatestTraceFromMysql();
-    if (trace) {
+    const traces = await this.getLatestNTraceFromMysql(step);
+    if (traces) {
       // 由于 ethereum_traces 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert
-      await this.ethereumTracesRepository.delete({ block_number: trace.block_number });
-      this.syncTracesFromBlockNumber(trace.block_number);
+      for await (const trace of traces) {
+        await this.ethereumTracesRepository.delete({ block_number: trace.block_number });
+      }
+      this.syncTracesFromBlockNumber(traces[0].block_number, step);
     } else {
-      this.syncTracesFromBlockNumber(ethereumBlockNumberOfFirstTransaction);
+      this.syncTracesFromBlockNumber(ethereumBlockNumberOfFirstTransaction, step);
     }
+  }
+
+  async getLatestNTraceFromMysql(step: number) {
+    const traces = await this.ethereumTracesRepository.createQueryBuilder("trace")
+    .groupBy("trace.block_number")
+    .orderBy("trace.block_number", "DESC")
+    .limit(step).getMany();
+    return traces;
   }
 
   async getLatestTraceFromMysql() {
@@ -41,26 +52,32 @@ export class EthereumSyncGethToMysqlService_traces {
     return trace;
   }
 
-  async syncTracesFromBlockNumber(blockNumber: number) {
+  async syncTracesFromBlockNumber(blockNumber: number, step: number) {
     try {
       const currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
       if (blockNumber > currentBlockNumber) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncTracesFromBlockNumber(blockNumber), syncGethToMysqlRestartTime);
+        return setTimeout(() => this.syncTracesFromBlockNumber(blockNumber, 1), syncGethToMysqlRestartTime);
       }
-      const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber, true);
-      const transactions = block.transactions as EthereumGethServiceResponse.Transaction[];
-      if (transactions.length > 0) {
-        const traceEntities = (await Promise.all(transactions.map((transaction) => this.getTraceEntities(block, transaction)))).flat();
-        if (traceEntities.length > 0) {
-          await this.ethereumTracesRepository.insert(traceEntities);
-          console.log(`sync traces (block: ${blockNumber}, trace count: ${traceEntities.length}) success 🎉`);
+      const blockNumbers = [];
+      for (let i = 0; i < step; i++) {
+        blockNumbers.push(blockNumber++);
+      }
+      for await (const bNumber of blockNumbers) {
+        const block = await this.ethereumGethService.eth_getBlockByNumber(bNumber, true);
+        const transactions = block.transactions as EthereumGethServiceResponse.Transaction[];
+        if (transactions.length > 0) {
+          const traceEntities = (await Promise.all(transactions.map((transaction) => this.getTraceEntities(block, transaction)))).flat();
+          if (traceEntities.length > 0) {
+            await this.ethereumTracesRepository.insert(traceEntities);
+            console.log(`sync traces (block: ${block.number}, trace count: ${traceEntities.length}) success 🎉`);
+          }
         }
       }
     } catch (e) {
-      console.log(`sync traces (block: ${blockNumber}) error:`, e.message);
+      console.log(`sync traces (block: ${blockNumber}, step: ${step}) error:`, e.message);
     }
-    this.syncTracesFromBlockNumber(blockNumber + 1);
+    this.syncTracesFromBlockNumber(blockNumber + 1, step);
   }
 
   async getTraceEntities(block: EthereumGethServiceResponse.Block, transaction: EthereumGethServiceResponse.Transaction) {
