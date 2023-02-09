@@ -16,7 +16,6 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
-import { isProd } from '@/constants';
 
 @Module({
   imports: [
@@ -25,7 +24,7 @@ import { isProd } from '@/constants';
       host: process.env.MYSQL_HOST,
       username: process.env.MYSQL_USERNAME,
       password: process.env.MYSQL_PASSWORD,
-      database: isProd ? 'blockchain' : 'blockchain-test',
+      database: 'blockchain',
       charset: 'utf8mb4',
       entities: [
         EthereumBlocks,
