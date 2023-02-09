@@ -18,7 +18,7 @@ export class EthereumSyncGethToMysqlService_traces {
 
   @Timeout(0)
   async syncTraces() {
-    //if (isDev) return;
+    if (isDev) return;
     const traces = await this.getLatestNTraceFromMysql(ethereumTraceSyncStep);
     if (traces.length > 0) {
       // 由于 ethereum_traces 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert
@@ -84,16 +84,19 @@ export class EthereumSyncGethToMysqlService_traces {
   }
 
   async syncTracesFromBlockNumber(blockNumber: number) {
-    const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber, true);
-    const transactions = block.transactions as EthereumGethServiceResponse.Transaction[];
-    if (transactions.length > 0) {
-      const traceEntities = (await Promise.all(transactions.map((transaction) => this.getTraceEntities(block, transaction)))).flat();
-      if (traceEntities.length > 0) {
-        await this.ethereumTracesRepository.insert(traceEntities);
-        console.log(`sync traces (block: ${block.number}, trace count: ${traceEntities.length}) success 🎉`);
+    try {
+      const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber, true);
+      const transactions = block.transactions as EthereumGethServiceResponse.Transaction[];
+      if (transactions.length > 0) {
+        const traceEntities = (await Promise.all(transactions.map((transaction) => this.getTraceEntities(block, transaction)))).flat();
+        if (traceEntities.length > 0) {
+          await this.ethereumTracesRepository.insert(traceEntities);
+          console.log(`sync traces (block: ${block.number}, trace count: ${traceEntities.length}) success 🎉`);
+        }
       }
+    } catch (e) {
+      console.log(`sync traces (block: ${blockNumber}, error`, e.message);
     }
-    return;
   }
 
   async getTraceEntities(block: EthereumGethServiceResponse.Block, transaction: EthereumGethServiceResponse.Transaction) {
