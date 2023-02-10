@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DingTalkModule } from './modules/dingtalk';
@@ -26,23 +26,27 @@ function getEnvFilePath() {
     ConfigModule.forRoot({
       envFilePath: getEnvFilePath(),
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.MYSQL_HOST,
-      username: process.env.MYSQL_USERNAME,
-      password: process.env.MYSQL_PASSWORD,
-      database: 'blockchain',
-      charset: 'utf8mb4',
-      entities: [
-        EthereumBlocks,
-        EthereumTransactions,
-        EthereumLogs,
-        EthereumTraces,
-        EthereumERC20,
-        EthereumERC20BalanceDay,
-        EthereumERC20EventApproval,
-        EthereumERC20EventTransfer,
-      ],
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('MYSQL_HOST'),
+        username: configService.get('MYSQL_USERNAME'),
+        password: configService.get('MYSQL_PASSWORD'),
+        database: 'blockchain',
+        charset: 'utf8mb4',
+        entities: [
+          EthereumBlocks,
+          EthereumTransactions,
+          EthereumLogs,
+          EthereumTraces,
+          EthereumERC20,
+          EthereumERC20BalanceDay,
+          EthereumERC20EventApproval,
+          EthereumERC20EventTransfer,
+        ],
+      }),
     }),
     ScheduleModule.forRoot(),
     DingTalkModule,
