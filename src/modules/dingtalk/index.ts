@@ -8,6 +8,5 @@ import { DingTalkSendService } from './services/send';
   controllers: [DingTalkBotController],
   providers: [DingTalkSendService],
   imports: [HttpModule, EthereumModule],
-  exports: [DingTalkSendService],
 })
 export class DingTalkModule {}
