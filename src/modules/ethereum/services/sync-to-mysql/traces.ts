@@ -21,15 +21,26 @@ export class EthereumSyncGethToMysqlService_traces {
     if (!isProd) return;
     const traces = await this.getLatestStepTracesFromMysql();
     if (traces.length > 0) {
-      // 由于 ethereum_traces 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert
+      // 由于 ethereum_traces 除了主键，没有其它能标识唯一行的字段，所以先删掉数据再重新 insert 而不是 upsert
       const latestStepStartBlockNumber = traces[traces.length - 1].block_number;
       const latestStepEndBlockNumber = traces[0].block_number;
       await this.deleteTracesByBlockNumberRange(latestStepStartBlockNumber, latestStepEndBlockNumber);
-      debug(`delete traces (start: ${latestStepStartBlockNumber}, end: ${latestStepEndBlockNumber}) success 🎉`);
       this.syncTracesFromBlockNumberByStep(latestStepStartBlockNumber);
     } else {
       this.syncTracesFromBlockNumberByStep(ethereumBlockNumberOfFirstTransaction);
     }
+  }
+
+  async getLatestTraceFromMysql() {
+    const [trace] = await this.ethereumTracesRepository.find({
+      order: {
+        block_number: 'DESC',
+        transaction_index: 'DESC',
+        // 实际上 traces 还有一层根据 trace_address 排序，此处忽略
+      },
+      take: 1,
+    });
+    return trace;
   }
 
   async getLatestStepTracesFromMysql() {
@@ -52,18 +63,6 @@ export class EthereumSyncGethToMysqlService_traces {
       .execute();
   }
 
-  async getLatestTraceFromMysql() {
-    const [trace] = await this.ethereumTracesRepository.find({
-      order: {
-        block_number: 'DESC',
-        transaction_index: 'DESC',
-        // 实际上 traces 还有一层根据 trace_address 排序，此处忽略
-      },
-      take: 1,
-    });
-    return trace;
-  }
-
   async syncTracesFromBlockNumberByStep(startBlockNumber: number) {
     const endBlockNumber = startBlockNumber + ethereumTracesSyncStep;
     try {
@@ -72,14 +71,12 @@ export class EthereumSyncGethToMysqlService_traces {
         // 没有数据了，等一段时间后有新的数据了再重新开始
         return setTimeout(() => this.syncTracesFromBlockNumberByStep(startBlockNumber), syncGethToMysqlRestartTime);
       }
-      // [start, end)
+      // 获取数组 [start, end)
       const blockNumbers = [];
       for (let blockNumber = startBlockNumber; blockNumber < endBlockNumber; blockNumber++) {
         blockNumbers.push(blockNumber);
       }
-      if (blockNumbers.length > 0) {
-        await Promise.all(blockNumbers.map((blockNumber) => this.syncTracesOfBlockNumber(blockNumber)));
-      }
+      await Promise.all(blockNumbers.map((blockNumber) => this.syncTracesOfBlockNumber(blockNumber)));
       debug(`sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) success 🎉`);
     } catch (e) {
       debug(`sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) error:`, e.message);
