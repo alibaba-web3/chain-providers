@@ -101,11 +101,11 @@ export class EthereumSyncGethToMysqlService_traces {
   }
 
   async getTraceEntities(block: EthereumGethServiceResponse.Block, transaction: EthereumGethServiceResponse.Transaction) {
-    const [{ calls }, transactionReceipt] = await Promise.all([
+    const [traceResult, transactionReceipt] = await Promise.all([
       this.ethereumGethService.debug_traceTransaction_callTracer(transaction.hash),
       this.ethereumGethService.eth_getTransactionReceipt(transaction.hash),
     ]);
-    return this.transformTraceEntities(calls, {
+    return this.transformTraceEntities(traceResult?.calls, {
       transaction_hash: transaction.hash,
       transaction_index: transaction.transactionIndex,
       transaction_success: transactionReceipt.status === 1,
