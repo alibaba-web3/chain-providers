@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { isDev, erc20Contracts, ERC20Contract } from '@/constants';
-import { ContractWithProvider, abis } from '@/utils';
+import { ContractWithProvider, abis, debug } from '@/utils';
 import { BigNumber, FixedNumber } from 'ethers';
 
 interface InfoFromContract {
@@ -37,9 +37,9 @@ export class EthereumERC20BasicInfoService {
     try {
       const entities = await Promise.all(erc20Contracts.map((erc20Contract) => this.getEntity(erc20Contract)));
       await this.ethereumERC20Repository.upsert(entities, ['contract_address']);
-      console.log('sync ERC20 basic info success, entities:', entities);
+      debug('sync ERC20 basic info success, entities:', entities);
     } catch (e) {
-      console.log('sync ERC20 basic info error:', e);
+      debug('sync ERC20 basic info error:', e);
     }
   }
 

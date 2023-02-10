@@ -4,8 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumGethService } from '../geth';
-import { syncGethToMysqlRestartTime } from '@/constants';
-import { isDev } from '@/constants';
+import { isDev, syncGethToMysqlRestartTime } from '@/constants';
+import { debug } from '@/utils';
 
 @Injectable()
 export class EthereumSyncGethToMysqlService_blocks {
@@ -52,9 +52,9 @@ export class EthereumSyncGethToMysqlService_blocks {
         timestamp: new Date(block.timestamp),
         transactions_count: block.transactions.length,
       });
-      console.log(`sync block (${start}) success 🎉`);
+      debug(`sync block (${start}) success 🎉`);
     } catch (e) {
-      console.log(`sync block (${start}) error:`, e.message);
+      debug(`sync block (${start}) error:`, e.message);
     }
     this.syncBlocksFromNumber(start + 1);
   }
