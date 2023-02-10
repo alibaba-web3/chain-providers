@@ -18,12 +18,13 @@ export class EthereumSyncGethToMysqlService_traces {
 
   @Timeout(0)
   async syncTraces() {
-    if (isDev) return;
+    //if (isDev) return;
     const traces = await this.getLatestNTraceFromMysql(ethereumTracesSyncStep);
     if (traces.length > 0) {
       // 由于 ethereum_traces 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert
       const lastSyncBlockNumber = traces[traces.length - 1].block_number;
-      await this.deleteTracesByBlockNumberRange(traces[0].block_number, lastSyncBlockNumber);
+      await this.deleteTracesByBlockNumberRange(lastSyncBlockNumber, traces[0].block_number);
+      debug(`delete traces (start: ${lastSyncBlockNumber}, end: ${traces[0].block_number}) success 🎉`);
       this.syncTracesFromBlockNumberByStep(lastSyncBlockNumber, lastSyncBlockNumber + ethereumTracesSyncStep);
     } else {
       this.syncTracesFromBlockNumberByStep(ethereumBlockNumberOfFirstTransaction, ethereumBlockNumberOfFirstTransaction + ethereumTracesSyncStep);
@@ -32,10 +33,12 @@ export class EthereumSyncGethToMysqlService_traces {
 
   async deleteTracesByBlockNumberRange(startBlockNumber: number, endBlockNumber: number) {
     this.ethereumTracesRepository
-      .createQueryBuilder('trace')
-      .where('trace.block_number >= :start', { start: startBlockNumber })
-      .andWhere('trace.block_number <= :end', { end: endBlockNumber })
-      .delete();
+      .createQueryBuilder()
+      .delete()
+      .from(EthereumTraces)
+      .where('block_number >= :start', { start: startBlockNumber })
+      .andWhere('block_number <= :end', { end: endBlockNumber })
+      .execute();
   }
 
   async getLatestNTraceFromMysql(step: number) {
@@ -77,6 +80,7 @@ export class EthereumSyncGethToMysqlService_traces {
       if (blockNumbers.length > 0) {
         await Promise.all(blockNumbers.map((blockNumber) => this.syncTracesFromBlockNumber(blockNumber)));
       }
+      debug(`sync traces (start: ${startBlockNumber}, end: ${endBlockNumber}) success 🎉`);
     } catch (e) {
       console.log(`sync traces (start: ${startBlockNumber}, end: ${endBlockNumber}) error:`, e.message);
     }
