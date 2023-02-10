@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { EthereumTraces } from '@/entities/ethereum-traces';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTraceSyncStep } from '@/constants';
-import { isDev } from '@/constants';
+import { isDev, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTraceSyncStep } from '@/constants';
+import { debug } from '@/utils';
 
 @Injectable()
 export class EthereumSyncGethToMysqlService_traces {
@@ -91,11 +91,11 @@ export class EthereumSyncGethToMysqlService_traces {
         const traceEntities = (await Promise.all(transactions.map((transaction) => this.getTraceEntities(block, transaction)))).flat();
         if (traceEntities.length > 0) {
           await this.ethereumTracesRepository.insert(traceEntities);
-          console.log(`sync traces (block: ${block.number}, trace count: ${traceEntities.length}) success 🎉`);
+          debug(`sync traces (block: ${blockNumber}, trace count: ${traceEntities.length}) success 🎉`);
         }
       }
     } catch (e) {
-      console.log(`sync traces (block: ${blockNumber}, error`, e.message);
+      debug(`sync traces (block: ${blockNumber}) error:`, e.message);
     }
   }
 

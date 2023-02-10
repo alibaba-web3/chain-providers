@@ -1,9 +1,6 @@
-// 在最前面初始化环境变量
-// eslint-disable-next-line
-require('dotenv').config();
-
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DingTalkModule } from './modules/dingtalk';
@@ -16,27 +13,40 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
-import { isProd } from '@/constants';
+import { isProd, isTest } from '@/constants';
+
+function getEnvFilePath() {
+  if (isProd) return '.env.production';
+  if (isTest) return '.env.test';
+  return '.env.development';
+}
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.MYSQL_HOST,
-      username: process.env.MYSQL_USERNAME,
-      password: process.env.MYSQL_PASSWORD,
-      database: 'blockchain',
-      charset: 'utf8mb4',
-      entities: [
-        EthereumBlocks,
-        EthereumTransactions,
-        EthereumLogs,
-        EthereumTraces,
-        EthereumERC20,
-        EthereumERC20BalanceDay,
-        EthereumERC20EventApproval,
-        EthereumERC20EventTransfer,
-      ],
+    ConfigModule.forRoot({
+      envFilePath: getEnvFilePath(),
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('MYSQL_HOST'),
+        username: configService.get('MYSQL_USERNAME'),
+        password: configService.get('MYSQL_PASSWORD'),
+        database: 'blockchain',
+        charset: 'utf8mb4',
+        entities: [
+          EthereumBlocks,
+          EthereumTransactions,
+          EthereumLogs,
+          EthereumTraces,
+          EthereumERC20,
+          EthereumERC20BalanceDay,
+          EthereumERC20EventApproval,
+          EthereumERC20EventTransfer,
+        ],
+      }),
     }),
     ScheduleModule.forRoot(),
     DingTalkModule,
@@ -47,7 +57,7 @@ class AppModule {}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ? process.env.PORT : 80);
+  await app.listen(+process.env.PORT || 80);
 }
 
 bootstrap();

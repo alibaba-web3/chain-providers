@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { EthereumLogs } from '@/entities/ethereum-logs';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
-import { isDev } from '@/constants';
+import { isDev, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { debug } from '@/utils';
 
 @Injectable()
 export class EthereumSyncGethToMysqlService_logs {
@@ -74,10 +74,10 @@ export class EthereumSyncGethToMysqlService_logs {
           )
           .flat();
         await this.ethereumLogsRepository.insert(logEntities);
-        console.log(`sync log (block: ${blockNumber}, log count: ${logEntities.length}) success 🎉`);
+        debug(`sync log (block: ${blockNumber}, log count: ${logEntities.length}) success 🎉`);
       }
     } catch (e) {
-      console.log(`sync log (block: ${blockNumber}) error:`, e.message);
+      debug(`sync log (block: ${blockNumber}) error:`, e.message);
     }
     this.syncLogsFromBlockNumber(blockNumber + 1);
   }

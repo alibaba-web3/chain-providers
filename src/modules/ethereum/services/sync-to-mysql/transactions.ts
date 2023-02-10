@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
-import { isDev } from '@/constants';
+import { isDev, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { debug } from '@/utils';
 
 @Injectable()
 export class EthereumSyncGethToMysqlService_transactions {
@@ -75,10 +75,10 @@ export class EthereumSyncGethToMysqlService_transactions {
           })),
           ['transaction_hash'],
         );
-        console.log(`sync transactions (block: ${blockNumber}, tx count: ${transactions.length}) success 🎉`);
+        debug(`sync transactions (block: ${blockNumber}, tx count: ${transactions.length}) success 🎉`);
       }
     } catch (e) {
-      console.log(`sync transactions (block: ${blockNumber}) error:`, e.message);
+      debug(`sync transactions (block: ${blockNumber}) error:`, e.message);
     }
     this.syncTransactionsFromBlockNumber(blockNumber + 1);
   }
