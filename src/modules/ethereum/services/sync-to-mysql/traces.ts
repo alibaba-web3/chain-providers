@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumTraces } from '@/entities/ethereum-traces';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { isDev, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTracesSyncStep } from '@/constants';
+import { isProd, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTracesSyncStep } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class EthereumSyncGethToMysqlService_traces {
 
   @Timeout(0)
   async syncTraces() {
-    if (isDev) return;
+    if (!isProd) return;
     const traces = await this.getLatestStepTracesFromMysql();
     if (traces.length > 0) {
       // 由于 ethereum_traces 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert

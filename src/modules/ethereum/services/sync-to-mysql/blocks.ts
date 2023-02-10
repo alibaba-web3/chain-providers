@@ -4,7 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumGethService } from '../geth';
-import { isDev, syncGethToMysqlRestartTime } from '@/constants';
+import { DingTalkSendService } from '@/modules/dingtalk/services/send';
+import { isProd, syncGethToMysqlRestartTime } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -13,13 +14,15 @@ export class EthereumSyncGethToMysqlService_blocks {
     @InjectRepository(EthereumBlocks)
     private ethereumBlocksRepository: Repository<EthereumBlocks>,
     private ethereumGethService: EthereumGethService,
+    private dingTalkSendService: DingTalkSendService,
   ) {}
 
   @Timeout(0)
   async syncBlocks() {
-    if (isDev) return;
+    if (!isProd) return;
     const block = await this.getLatestBlockFromMysql();
     this.syncBlocksFromNumber(block ? block.block_number + 1 : 0);
+    this.dingTalkSendService.sendTextToTestRoom('start sync blocks 🤖️');
   }
 
   async getLatestBlockFromMysql() {
