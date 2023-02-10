@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumGethService } from '../geth';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
-import { isDev, syncGethToMysqlRestartTime } from '@/constants';
+import { isProd, syncGethToMysqlRestartTime } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class EthereumSyncGethToMysqlService_blocks {
 
   @Timeout(0)
   async syncBlocks() {
-    if (isDev) return;
+    if (!isProd) return;
     const block = await this.getLatestBlockFromMysql();
     this.syncBlocksFromNumber(block ? block.block_number + 1 : 0);
     this.dingTalkSendService.sendTextToTestRoom('start sync blocks 🤖️');
