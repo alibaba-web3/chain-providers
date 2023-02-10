@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Timeout } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
@@ -31,7 +31,7 @@ export class EthereumERC20BasicInfoService {
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
   ) {}
 
-  @Timeout(0)
+  @Cron(CronExpression.EVERY_HOUR)
   async syncERC20BasicInfo() {
     if (isDev) return;
     try {
