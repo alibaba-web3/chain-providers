@@ -1,5 +1,5 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
+import { DingTalkSendService } from '../services/send';
 import { EthereumGethService } from '@/modules/ethereum/services/geth';
 import { EthereumSyncGethToMysqlService_blocks } from '@/modules/ethereum/services/sync-to-mysql/blocks';
 import { EthereumSyncGethToMysqlService_transactions } from '@/modules/ethereum/services/sync-to-mysql/transactions';
@@ -7,7 +7,6 @@ import { EthereumSyncGethToMysqlService_logs } from '@/modules/ethereum/services
 import { EthereumSyncGethToMysqlService_traces } from '@/modules/ethereum/services/sync-to-mysql/traces';
 import { dingTalkBotUrls } from '@/constants';
 import { debug } from '@/utils';
-import { firstValueFrom } from 'rxjs';
 
 interface MessageBody {
   msgId: string;
@@ -31,17 +30,13 @@ interface MessageBody {
 @Controller('/dingtalk/bot')
 export class DingTalkBotController {
   constructor(
-    private httpService: HttpService,
+    private dingtalkSendService: DingTalkSendService,
     private ethereumGethService: EthereumGethService,
     private ethereumSyncGethToMysqlService_blocks: EthereumSyncGethToMysqlService_blocks,
     private ethereumSyncGethToMysqlService_transactions: EthereumSyncGethToMysqlService_transactions,
     private ethereumSyncGethToMysqlService_logs: EthereumSyncGethToMysqlService_logs,
     private ethereumSyncGethToMysqlService_traces: EthereumSyncGethToMysqlService_traces,
   ) {}
-
-  sendText(url: string, content: string): Promise<any> {
-    return firstValueFrom(this.httpService.post(url, { msgtype: 'text', text: { content } }));
-  }
 
   @Post()
   async index(@Body() body: MessageBody) {
@@ -80,7 +75,10 @@ export class DingTalkBotController {
       texts.push(`transactions: ${mysqlTransactionSyncingProgress}%`);
       texts.push(`logs: ${mysqlLogSyncingProgress}%`);
       texts.push(`traces: ${mysqlTraceSyncingProgress}%`);
-      await this.sendText(url, texts.join('\n'));
+      await this.dingtalkSendService.sendText(url, texts.join('\n'));
+    }
+    if (msgtype === 'text' && text.content.trim().toLowerCase() === 'hi') {
+      await this.dingtalkSendService.sendText(url, 'hello');
     }
   }
 }
