@@ -42,7 +42,11 @@ export class DingTalkBotController {
   async index(@Body() body: MessageBody) {
     const { conversationId, msgtype, text } = body;
     const url = dingTalkBotUrls[conversationId];
-    if (!url) return debug('[dingtalk/bot] conversation id not in whitelist. message body:', body);
+    if (url) {
+      debug(`[dingtalk/bot] receive message. conversation id: "${conversationId}". body:`, body);
+    } else {
+      return debug('[dingtalk/bot] conversation id not in whitelist. body:', body);
+    }
     if (msgtype === 'text' && text.content.trim().toLowerCase() === 'syncing') {
       const [peerCount, syncing, currentBlockNumber, latestBlockInMysql, latestTransactionInMysql, latestLogInMysql, latestTraceFromMysql] =
         await Promise.all([
