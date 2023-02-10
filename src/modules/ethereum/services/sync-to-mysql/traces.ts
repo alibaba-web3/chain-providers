@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumTraces } from '@/entities/ethereum-traces';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { isProd, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { isProd, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTracesSyncStep } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -19,14 +19,37 @@ export class EthereumSyncGethToMysqlService_traces {
   @Timeout(0)
   async syncTraces() {
     if (!isProd) return;
-    const trace = await this.getLatestTraceFromMysql();
-    if (trace) {
+    const traces = await this.getLatestStepTracesFromMysql();
+    if (traces.length > 0) {
       // 由于 ethereum_traces 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert
-      await this.ethereumTracesRepository.delete({ block_number: trace.block_number });
-      this.syncTracesFromBlockNumber(trace.block_number);
+      const latestStepStartBlockNumber = traces[traces.length - 1].block_number;
+      const latestStepEndBlockNumber = traces[0].block_number;
+      await this.deleteTracesByBlockNumberRange(latestStepStartBlockNumber, latestStepEndBlockNumber);
+      debug(`delete traces (start: ${latestStepStartBlockNumber}, end: ${latestStepEndBlockNumber}) success 🎉`);
+      this.syncTracesFromBlockNumberByStep(latestStepStartBlockNumber);
     } else {
-      this.syncTracesFromBlockNumber(ethereumBlockNumberOfFirstTransaction);
+      this.syncTracesFromBlockNumberByStep(ethereumBlockNumberOfFirstTransaction);
     }
+  }
+
+  async getLatestStepTracesFromMysql() {
+    const traces = await this.ethereumTracesRepository
+      .createQueryBuilder('trace')
+      .groupBy('trace.block_number')
+      .orderBy('trace.block_number', 'DESC')
+      .limit(ethereumTracesSyncStep)
+      .getMany();
+    return traces;
+  }
+
+  async deleteTracesByBlockNumberRange(startBlockNumber: number, endBlockNumber: number) {
+    await this.ethereumTracesRepository
+      .createQueryBuilder()
+      .delete()
+      .from(EthereumTraces)
+      .where('block_number >= :start', { start: startBlockNumber })
+      .andWhere('block_number <= :end', { end: endBlockNumber })
+      .execute();
   }
 
   async getLatestTraceFromMysql() {
@@ -41,13 +64,31 @@ export class EthereumSyncGethToMysqlService_traces {
     return trace;
   }
 
-  async syncTracesFromBlockNumber(blockNumber: number) {
+  async syncTracesFromBlockNumberByStep(startBlockNumber: number) {
+    const endBlockNumber = startBlockNumber + ethereumTracesSyncStep;
     try {
       const currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
-      if (blockNumber > currentBlockNumber) {
+      if (endBlockNumber > currentBlockNumber) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncTracesFromBlockNumber(blockNumber), syncGethToMysqlRestartTime);
+        return setTimeout(() => this.syncTracesFromBlockNumberByStep(startBlockNumber), syncGethToMysqlRestartTime);
       }
+      // [start, end)
+      const blockNumbers = [];
+      for (let blockNumber = startBlockNumber; blockNumber < endBlockNumber; blockNumber++) {
+        blockNumbers.push(blockNumber);
+      }
+      if (blockNumbers.length > 0) {
+        await Promise.all(blockNumbers.map((blockNumber) => this.syncTracesOfBlockNumber(blockNumber)));
+      }
+      debug(`sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) success 🎉`);
+    } catch (e) {
+      debug(`sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) error:`, e.message);
+    }
+    this.syncTracesFromBlockNumberByStep(endBlockNumber);
+  }
+
+  async syncTracesOfBlockNumber(blockNumber: number) {
+    try {
       const block = await this.ethereumGethService.eth_getBlockByNumber(blockNumber, true);
       const transactions = block.transactions as EthereumGethServiceResponse.Transaction[];
       if (transactions.length > 0) {
@@ -60,7 +101,6 @@ export class EthereumSyncGethToMysqlService_traces {
     } catch (e) {
       debug(`sync traces (block: ${blockNumber}) error:`, e.message);
     }
-    this.syncTracesFromBlockNumber(blockNumber + 1);
   }
 
   async getTraceEntities(block: EthereumGethServiceResponse.Block, transaction: EthereumGethServiceResponse.Transaction) {
