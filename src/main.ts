@@ -1,9 +1,6 @@
-// 在最前面初始化环境变量
-// eslint-disable-next-line
-require('dotenv').config();
-
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DingTalkModule } from './modules/dingtalk';
@@ -16,9 +13,19 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
+import { isProd, isTest } from '@/constants';
+
+function getEnvFilePath() {
+  if (isProd) return '.env.production';
+  if (isTest) return '.env.test';
+  return '.env.development';
+}
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: getEnvFilePath(),
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.MYSQL_HOST,

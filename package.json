@@ -18,11 +18,11 @@
   "dependencies": {
     "@nestjs/axios": "^1.0.1",
     "@nestjs/common": "^9.0.0",
+    "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/schedule": "^2.1.0",
     "@nestjs/typeorm": "^9.0.1",
-    "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
     "mysql2": "^2.3.3",
     "puppeteer": "^19.5.0",

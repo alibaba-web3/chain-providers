@@ -4,7 +4,7 @@
 /screenshots
 
 # Config
-.env
+.env.*
 
 # Logs
 logs
