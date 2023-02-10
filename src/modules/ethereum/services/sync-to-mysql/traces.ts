@@ -32,16 +32,6 @@ export class EthereumSyncGethToMysqlService_traces {
     }
   }
 
-  async deleteTracesByBlockNumberRange(startBlockNumber: number, endBlockNumber: number) {
-    await this.ethereumTracesRepository
-      .createQueryBuilder()
-      .delete()
-      .from(EthereumTraces)
-      .where('block_number >= :start', { start: startBlockNumber })
-      .andWhere('block_number <= :end', { end: endBlockNumber })
-      .execute();
-  }
-
   async getLatestStepTracesFromMysql() {
     const traces = await this.ethereumTracesRepository
       .createQueryBuilder('trace')
@@ -50,6 +40,16 @@ export class EthereumSyncGethToMysqlService_traces {
       .limit(ethereumTracesSyncStep)
       .getMany();
     return traces;
+  }
+
+  async deleteTracesByBlockNumberRange(startBlockNumber: number, endBlockNumber: number) {
+    await this.ethereumTracesRepository
+      .createQueryBuilder()
+      .delete()
+      .from(EthereumTraces)
+      .where('block_number >= :start', { start: startBlockNumber })
+      .andWhere('block_number <= :end', { end: endBlockNumber })
+      .execute();
   }
 
   async getLatestTraceFromMysql() {
@@ -72,7 +72,7 @@ export class EthereumSyncGethToMysqlService_traces {
         // 没有数据了，等一段时间后有新的数据了再重新开始
         return setTimeout(() => this.syncTracesFromBlockNumberByStep(startBlockNumber), syncGethToMysqlRestartTime);
       }
-      // [start, end) 前闭后开
+      // [start, end)
       const blockNumbers = [];
       for (let blockNumber = startBlockNumber; blockNumber < endBlockNumber; blockNumber++) {
         blockNumbers.push(blockNumber);
@@ -80,9 +80,9 @@ export class EthereumSyncGethToMysqlService_traces {
       if (blockNumbers.length > 0) {
         await Promise.all(blockNumbers.map((blockNumber) => this.syncTracesOfBlockNumber(blockNumber)));
       }
-      debug(`sync traces (start: ${startBlockNumber}, end: ${endBlockNumber}) success 🎉`);
+      debug(`sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) success 🎉`);
     } catch (e) {
-      console.log(`sync traces (start: ${startBlockNumber}, end: ${endBlockNumber}) error:`, e.message);
+      debug(`sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) error:`, e.message);
     }
     this.syncTracesFromBlockNumberByStep(endBlockNumber);
   }
