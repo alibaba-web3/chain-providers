@@ -30,7 +30,7 @@ interface MessageBody {
 @Controller('/dingtalk/bot')
 export class DingTalkBotController {
   constructor(
-    private dingtalkSendService: DingTalkSendService,
+    private dingTalkSendService: DingTalkSendService,
     private ethereumGethService: EthereumGethService,
     private ethereumSyncGethToMysqlService_blocks: EthereumSyncGethToMysqlService_blocks,
     private ethereumSyncGethToMysqlService_transactions: EthereumSyncGethToMysqlService_transactions,
@@ -75,10 +75,10 @@ export class DingTalkBotController {
       texts.push(`transactions: ${mysqlTransactionSyncingProgress}%`);
       texts.push(`logs: ${mysqlLogSyncingProgress}%`);
       texts.push(`traces: ${mysqlTraceSyncingProgress}%`);
-      await this.dingtalkSendService.sendText(url, texts.join('\n'));
+      await this.dingTalkSendService.sendText(url, texts.join('\n'));
     }
     if (msgtype === 'text' && text.content.trim().toLowerCase() === 'hi') {
-      await this.dingtalkSendService.sendText(url, 'hello');
+      await this.dingTalkSendService.sendText(url, 'hello');
     }
   }
 }

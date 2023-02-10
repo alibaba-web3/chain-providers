@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DingTalkModule } from '@/modules/dingtalk';
 import { EthereumJsonRpcController } from './controllers/json-rpc';
 import { EthereumSyncGethToMysqlService_blocks } from './services/sync-to-mysql/blocks';
 import { EthereumSyncGethToMysqlService_transactions } from './services/sync-to-mysql/transactions';
@@ -9,6 +8,7 @@ import { EthereumSyncGethToMysqlService_logs } from './services/sync-to-mysql/lo
 import { EthereumSyncGethToMysqlService_traces } from './services/sync-to-mysql/traces';
 import { EthereumGethService } from './services/geth';
 import { EthereumERC20BasicInfoService } from './services/erc20/basic-info';
+import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumLogs } from '@/entities/ethereum-logs';
@@ -27,10 +27,10 @@ import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-tran
     EthereumSyncGethToMysqlService_traces,
     EthereumGethService,
     EthereumERC20BasicInfoService,
+    DingTalkSendService,
   ],
   imports: [
     HttpModule,
-    DingTalkModule,
     TypeOrmModule.forFeature([
       EthereumBlocks,
       EthereumTransactions,
