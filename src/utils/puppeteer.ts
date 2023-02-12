@@ -1,5 +1,5 @@
 import puppeteer, { Page, WaitForOptions } from 'puppeteer';
-import { debug } from '@/utils';
+import { debug } from './debug';
 
 type Fn = (page: Page) => Promise<void> | void;
 

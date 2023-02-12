@@ -1,4 +1,5 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { BigNumber } from 'ethers';
 
 @Entity()
 export class EthereumERC20EventTransfer {
@@ -14,8 +15,15 @@ export class EthereumERC20EventTransfer {
   @Column('char', { length: 42 })
   to: string;
 
-  @Column('decimal')
-  value: number;
+  @Column('decimal', {
+    precision: 50,
+    scale: 0,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => BigNumber.from(v),
+    },
+  })
+  value: BigNumber;
 
   @Column('int', { unsigned: true })
   block_number: number;
