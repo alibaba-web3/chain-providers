@@ -5,8 +5,9 @@ import { Repository } from 'typeorm';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
+import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumLogs } from '@/entities/ethereum-logs';
-import { isDev, isProd, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { isDev, isProd } from '@/constants';
 import { debug } from '@/utils';
 import { ethers, BigNumber } from 'ethers';
 
@@ -17,6 +18,8 @@ export class EthereumERC20Service_event_transfer {
     private ethereumERC20Repository: Repository<EthereumERC20>,
     @InjectRepository(EthereumERC20EventTransfer)
     private ethereumERC20EventTransferRepository: Repository<EthereumERC20EventTransfer>,
+    @InjectRepository(EthereumTransactions)
+    private ethereumTransactionsRepository: Repository<EthereumTransactions>,
     @InjectRepository(EthereumLogs)
     private ethereumLogsRepository: Repository<EthereumLogs>,
     private dingTalkSendService: DingTalkSendService,
@@ -27,14 +30,14 @@ export class EthereumERC20Service_event_transfer {
   async main() {
     if (isDev) return;
     const tokens = await this.ethereumERC20Repository.find();
-    tokens.forEach(({ symbol, contract_address }) => {
+    tokens.forEach(({ symbol, contract_address, creation_transaction_hash }) => {
       console.log(`start sync erc20 transfer events (symbol: ${symbol})`);
-      this.syncTransferEvents(contract_address);
+      this.syncTransferEvents(contract_address, creation_transaction_hash);
     });
     console.log(`start sync erc20 transfer events (token count: ${tokens.length})`);
   }
 
-  async syncTransferEvents(contractAddress: string) {
+  async syncTransferEvents(contractAddress: string, creationTransactionHash: string) {
     const event = await this.getLatestTransferEventFromMysql(contractAddress);
     if (event) {
       // 由于除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert
@@ -44,8 +47,10 @@ export class EthereumERC20Service_event_transfer {
       });
       this.syncTransferEventsFromBlockNumber(contractAddress, event.block_number);
     } else {
-      // TODO: 应该从该合约的交易的第一个区块开始
-      this.syncTransferEventsFromBlockNumber(contractAddress, ethereumBlockNumberOfFirstTransaction);
+      const creationTransaction = await this.ethereumTransactionsRepository.findOneBy({
+        transaction_hash: creationTransactionHash,
+      });
+      this.syncTransferEventsFromBlockNumber(contractAddress, creationTransaction.block_number);
     }
   }
 
