@@ -3,9 +3,10 @@ import { Timeout } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumTraces } from '@/entities/ethereum-traces';
+import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { isDev, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTracesSyncStep } from '@/constants';
+import { isDev, isProd, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTracesSyncStep } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class EthereumSyncGethToMysqlService_traces {
     @InjectRepository(EthereumTraces)
     private ethereumTracesRepository: Repository<EthereumTraces>,
     private ethereumGethService: EthereumGethService,
+    private dingTalkSendService: DingTalkSendService,
   ) {}
 
   @Timeout(0)
@@ -29,6 +31,7 @@ export class EthereumSyncGethToMysqlService_traces {
     } else {
       this.syncTracesFromBlockNumberByStep(ethereumBlockNumberOfFirstTransaction);
     }
+    console.log('start syncing ethereum traces');
   }
 
   async getLatestTraceFromMysql() {
@@ -79,7 +82,11 @@ export class EthereumSyncGethToMysqlService_traces {
       await Promise.all(blockNumbers.map((blockNumber) => this.syncTracesOfBlockNumber(blockNumber)));
       debug(`sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) success 🎉`);
     } catch (e) {
-      debug(`sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) error:`, e.message);
+      const errorMessage = `sync traces of blocks [${startBlockNumber}, ${endBlockNumber}) error: ${e.message}`;
+      if (isProd) {
+        this.dingTalkSendService.sendTextToTestRoom(errorMessage);
+      }
+      debug(errorMessage);
     }
     this.syncTracesFromBlockNumberByStep(endBlockNumber);
   }
@@ -96,7 +103,11 @@ export class EthereumSyncGethToMysqlService_traces {
         }
       }
     } catch (e) {
-      debug(`sync traces (block: ${blockNumber}) error:`, e.message);
+      const errorMessage = `sync traces (block: ${blockNumber}) error: ${e.message}`;
+      if (isProd) {
+        this.dingTalkSendService.sendTextToTestRoom(errorMessage);
+      }
+      debug(errorMessage);
     }
   }
 

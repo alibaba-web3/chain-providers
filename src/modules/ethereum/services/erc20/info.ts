@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Timeout, Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
-import { isDev, erc20Contracts, ERC20Contract } from '@/constants';
+import { isDev, isProd, erc20Contracts, ERC20Contract } from '@/constants';
 import { ContractWithProvider, abis, debug } from '@/utils';
 import { BigNumber, FixedNumber } from 'ethers';
 
@@ -29,6 +30,7 @@ export class EthereumERC20Service_info {
     private ethereumERC20Repository: Repository<EthereumERC20>,
     @InjectRepository(EthereumTransactions)
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
+    private dingTalkSendService: DingTalkSendService,
   ) {}
 
   @Timeout(0)
@@ -36,11 +38,16 @@ export class EthereumERC20Service_info {
   async main() {
     if (isDev) return;
     try {
+      console.log('start syncing erc20 info');
       const entities = await Promise.all(erc20Contracts.map((erc20Contract) => this.getEntity(erc20Contract)));
       await this.ethereumERC20Repository.upsert(entities, ['contract_address']);
-      debug('sync ERC20 info success, entities:', entities);
+      debug('sync erc20 info success, entities:', entities);
     } catch (e) {
-      debug('sync ERC20 info error:', e);
+      const errorMessage = `sync erc20 info error: ${e.message}`;
+      if (isProd) {
+        this.dingTalkSendService.sendTextToTestRoom(errorMessage);
+      }
+      debug(errorMessage);
     }
   }
 

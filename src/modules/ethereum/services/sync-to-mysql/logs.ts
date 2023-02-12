@@ -3,9 +3,10 @@ import { Timeout } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumLogs } from '@/entities/ethereum-logs';
+import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { isDev, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { isDev, isProd, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class EthereumSyncGethToMysqlService_logs {
     @InjectRepository(EthereumLogs)
     private ethereumLogsRepository: Repository<EthereumLogs>,
     private ethereumGethService: EthereumGethService,
+    private dingTalkSendService: DingTalkSendService,
   ) {}
 
   @Timeout(0)
@@ -27,6 +29,7 @@ export class EthereumSyncGethToMysqlService_logs {
     } else {
       this.syncLogsFromBlockNumber(ethereumBlockNumberOfFirstTransaction);
     }
+    console.log('start syncing ethereum logs');
   }
 
   async getLatestLogFromMysql() {
@@ -74,10 +77,14 @@ export class EthereumSyncGethToMysqlService_logs {
           )
           .flat();
         await this.ethereumLogsRepository.insert(logEntities);
-        debug(`sync log (block: ${blockNumber}, log count: ${logEntities.length}) success 🎉`);
+        debug(`sync logs (block: ${blockNumber}, log count: ${logEntities.length}) success 🎉`);
       }
     } catch (e) {
-      debug(`sync log (block: ${blockNumber}) error:`, e.message);
+      const errorMessage = `sync logs (block: ${blockNumber}) error: ${e.message}`;
+      if (isProd) {
+        this.dingTalkSendService.sendTextToTestRoom(errorMessage);
+      }
+      debug(errorMessage);
     }
     this.syncLogsFromBlockNumber(blockNumber + 1);
   }

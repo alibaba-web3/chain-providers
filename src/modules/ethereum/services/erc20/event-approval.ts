@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { Timeout, Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumLogs } from '@/entities/ethereum-logs';
-import { isDev, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { isDev, isProd, ethereumBlockNumberOfFirstTransaction } from '@/constants';
 import { debug } from '@/utils';
 import { ethers, BigNumber } from 'ethers';
 
@@ -18,6 +19,7 @@ export class EthereumERC20Service_event_approval {
     private ethereumERC20EventApprovalRepository: Repository<EthereumERC20EventApproval>,
     @InjectRepository(EthereumLogs)
     private ethereumLogsRepository: Repository<EthereumLogs>,
+    private dingTalkSendService: DingTalkSendService,
   ) {}
 
   @Timeout(0)
@@ -26,10 +28,10 @@ export class EthereumERC20Service_event_approval {
     if (isDev) return;
     const tokens = await this.ethereumERC20Repository.find();
     tokens.forEach(({ symbol, contract_address }) => {
-      debug(`start sync ERC20 approval events (symbol: ${symbol})`);
+      console.log(`start sync erc20 approval events (symbol: ${symbol})`);
       this.syncApprovalEvents(contract_address);
     });
-    debug(`start sync ERC20 approval events (token count: ${tokens.length})`);
+    console.log(`start sync erc20 approval events (token count: ${tokens.length})`);
   }
 
   async syncApprovalEvents(contractAddress: string) {
@@ -78,10 +80,14 @@ export class EthereumERC20Service_event_approval {
           log_index: log.log_index,
         }));
         await this.ethereumERC20EventApprovalRepository.insert(eventEntities);
-        debug(`sync ERC20 approval events (contract: ${contractAddress}, block: ${blockNumber}, event count: ${eventEntities.length}) success 🎉`);
+        debug(`sync erc20 approval events (contract: ${contractAddress}, block: ${blockNumber}, event count: ${eventEntities.length}) success 🎉`);
       }
     } catch (e) {
-      debug(`sync ERC20 approval events (contract: ${contractAddress}, block: ${blockNumber}) error:`, e.message);
+      const errorMessage = `sync erc20 approval events (contract: ${contractAddress}, block: ${blockNumber}) error: ${e.message}`;
+      if (isProd) {
+        this.dingTalkSendService.sendTextToTestRoom(errorMessage);
+      }
+      debug(errorMessage);
     }
     this.syncApprovalEventsFromBlockNumber(contractAddress, blockNumber + 1);
   }

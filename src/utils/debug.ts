@@ -1,3 +1,5 @@
+import { isProd } from '@/constants';
+
 export function debug(...args: any) {
-  return console.log(...args);
+  if (!isProd) return console.log(...args);
 }

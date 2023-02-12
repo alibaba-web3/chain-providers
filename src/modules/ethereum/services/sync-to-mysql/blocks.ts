@@ -3,9 +3,9 @@ import { Timeout } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
-import { EthereumGethService } from '../geth';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
-import { isDev, syncGethToMysqlRestartTime } from '@/constants';
+import { EthereumGethService } from '../geth';
+import { isDev, isProd, syncGethToMysqlRestartTime } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class EthereumSyncGethToMysqlService_blocks {
     if (isDev) return;
     const block = await this.getLatestBlockFromMysql();
     this.syncBlocksFromNumber(block ? block.block_number + 1 : 0);
-    this.dingTalkSendService.sendTextToTestRoom('start sync blocks 🤖️');
+    console.log('start syncing ethereum blocks');
   }
 
   async getLatestBlockFromMysql() {
@@ -57,7 +57,11 @@ export class EthereumSyncGethToMysqlService_blocks {
       });
       debug(`sync block (${start}) success 🎉`);
     } catch (e) {
-      debug(`sync block (${start}) error:`, e.message);
+      const errorMessage = `sync block (${start}) error: ${e.message}`;
+      if (isProd) {
+        this.dingTalkSendService.sendTextToTestRoom(errorMessage);
+      }
+      debug(errorMessage);
     }
     this.syncBlocksFromNumber(start + 1);
   }
