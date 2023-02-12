@@ -3,11 +3,12 @@ import { Timeout, Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
+import { EthereumSyncGethToMysqlService_logs } from '@/modules/ethereum/services/sync-to-mysql/logs';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumLogs } from '@/entities/ethereum-logs';
-import { isDev, isProd } from '@/constants';
+import { isDev, isProd, syncRestartTime } from '@/constants';
 import { debug } from '@/utils';
 import { ethers, BigNumber } from 'ethers';
 
@@ -22,17 +23,25 @@ export class EthereumERC20Service_event_transfer {
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
     @InjectRepository(EthereumLogs)
     private ethereumLogsRepository: Repository<EthereumLogs>,
+    private ethereumSyncGethToMysqlService_logs: EthereumSyncGethToMysqlService_logs,
     private dingTalkSendService: DingTalkSendService,
   ) {}
+
+  // 记录 ethereum_logs 表的同步进度
+  private latestLogBlockNumber: number;
 
   @Timeout(0)
   @Cron(CronExpression.EVERY_HOUR)
   async main() {
     if (isDev) return;
-    const tokens = await this.ethereumERC20Repository.find();
+    const [latestLog, tokens] = await Promise.all([
+      this.ethereumSyncGethToMysqlService_logs.getLatestLogFromMysql(),
+      this.ethereumERC20Repository.find(),
+    ]);
+    this.latestLogBlockNumber = latestLog.block_number;
     tokens.forEach(({ symbol, contract_address, creation_transaction_hash }) => {
-      console.log(`start sync erc20 transfer events (symbol: ${symbol})`);
       this.syncTransferEvents(contract_address, creation_transaction_hash);
+      console.log(`start sync erc20 transfer events (symbol: ${symbol})`);
     });
     console.log(`start sync erc20 transfer events (token count: ${tokens.length})`);
   }
@@ -66,6 +75,14 @@ export class EthereumERC20Service_event_transfer {
   // 推荐阅读：理解以太坊的 event logs
   // https://medium.com/mycrypto/understanding-event-logs-on-the-ethereum-blockchain-f4ae7ba50378
   async syncTransferEventsFromBlockNumber(contractAddress: string, blockNumber: number) {
+    if (blockNumber > this.latestLogBlockNumber) {
+      // 没有数据了，等一段时间后有新的数据了再重新开始
+      return setTimeout(async () => {
+        const latestLog = await this.ethereumSyncGethToMysqlService_logs.getLatestLogFromMysql();
+        this.latestLogBlockNumber = latestLog.block_number;
+        this.syncTransferEventsFromBlockNumber(contractAddress, blockNumber);
+      }, syncRestartTime);
+    }
     try {
       const logs = await this.ethereumLogsRepository.findBy({
         contract_address: contractAddress,

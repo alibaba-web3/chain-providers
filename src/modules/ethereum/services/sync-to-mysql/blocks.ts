@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumGethService } from '../geth';
-import { isDev, isProd, syncGethToMysqlRestartTime } from '@/constants';
+import { isDev, isProd, syncRestartTime } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -40,7 +40,7 @@ export class EthereumSyncGethToMysqlService_blocks {
       const block = await this.ethereumGethService.eth_getBlockByNumber(start);
       if (!block) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncBlocksFromNumber(start), syncGethToMysqlRestartTime);
+        return setTimeout(() => this.syncBlocksFromNumber(start), syncRestartTime);
       }
       await this.ethereumBlocksRepository.insert({
         block_number: block.number,
