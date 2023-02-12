@@ -3,10 +3,7 @@ import { BigNumber, FixedNumber } from 'ethers';
 
 @Entity()
 export class EthereumERC20 {
-  @PrimaryColumn('int', { unsigned: true })
-  id: number;
-
-  @Column('char', { length: 42 })
+  @PrimaryColumn('char', { length: 42 })
   contract_address: string;
 
   @Column('varchar', { length: 20 })
