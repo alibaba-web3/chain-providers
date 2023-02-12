@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
-import { isProd, erc20Contracts, ERC20Contract } from '@/constants';
+import { isDev, erc20Contracts, ERC20Contract } from '@/constants';
 import { ContractWithProvider, abis, debug } from '@/utils';
 import { BigNumber, FixedNumber } from 'ethers';
 
@@ -33,7 +33,7 @@ export class EthereumERC20Service_info {
 
   @Cron(CronExpression.EVERY_HOUR)
   async main() {
-    if (!isProd) return;
+    if (isDev) return;
     try {
       const entities = await Promise.all(erc20Contracts.map((erc20Contract) => this.getEntity(erc20Contract)));
       await this.ethereumERC20Repository.upsert(entities, ['contract_address']);

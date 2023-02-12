@@ -21,11 +21,11 @@ export const erc20Contracts: ERC20Contract[] = [
     isStable: true,
   },
   // DAI
-  {
-    contractAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
-    creationTransactionHash: null,
-    isStable: true,
-  },
+  // {
+  //   contractAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  //   creationTransactionHash: null,
+  //   isStable: true,
+  // },
   // WBTC
   {
     contractAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
@@ -57,11 +57,11 @@ export const erc20Contracts: ERC20Contract[] = [
     isStable: false,
   },
   // PEOPLE
-  {
-    contractAddress: '0x7a58c0be72be218b41c608b7fe7c5bb630736c71',
-    creationTransactionHash: null,
-    isStable: false,
-  },
+  // {
+  //   contractAddress: '0x7a58c0be72be218b41c608b7fe7c5bb630736c71',
+  //   creationTransactionHash: null,
+  //   isStable: false,
+  // },
   // MASK
   {
     contractAddress: '0x69af81e73a73b40adf4f3d4223cd9b1ece623074',

@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { isProd, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { isDev, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class EthereumSyncGethToMysqlService_transactions {
 
   @Timeout(0)
   async main() {
-    if (!isProd) return;
+    if (isDev) return;
     const transaction = await this.getLatestTransactionFromMysql();
     if (transaction) {
       this.syncTransactionsFromBlockNumber(transaction.block_number);

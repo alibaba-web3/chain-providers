@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumLogs } from '@/entities/ethereum-logs';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { isProd, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { isDev, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class EthereumSyncGethToMysqlService_logs {
 
   @Timeout(0)
   async main() {
-    if (!isProd) return;
+    if (isDev) return;
     const log = await this.getLatestLogFromMysql();
     if (log) {
       // 由于 ethereum_logs 除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert

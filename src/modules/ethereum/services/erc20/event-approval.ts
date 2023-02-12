@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumLogs } from '@/entities/ethereum-logs';
-import { isProd, ethereumBlockNumberOfFirstTransaction } from '@/constants';
+import { isDev, ethereumBlockNumberOfFirstTransaction } from '@/constants';
 import { debug } from '@/utils';
 import { ethers, BigNumber } from 'ethers';
 
@@ -22,7 +22,7 @@ export class EthereumERC20Service_event_approval {
 
   @Cron(CronExpression.EVERY_HOUR)
   async main() {
-    if (!isProd) return;
+    if (isDev) return;
     const tokens = await this.ethereumERC20Repository.find();
     tokens.forEach(({ symbol, contract_address }) => {
       debug(`start sync ERC20 approval events (symbol: ${symbol})`);
