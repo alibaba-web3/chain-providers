@@ -6,7 +6,7 @@ import { EthereumTraces } from '@/entities/ethereum-traces';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumGethService } from '../geth';
 import { EthereumGethServiceResponse } from '../../types/geth';
-import { isDev, isProd, syncGethToMysqlRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTracesSyncStep } from '@/constants';
+import { isDev, isProd, syncRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTracesSyncStep } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
@@ -72,7 +72,7 @@ export class EthereumSyncGethToMysqlService_traces {
       const currentBlockNumber = await this.ethereumGethService.eth_blockNumber();
       if (endBlockNumber > currentBlockNumber) {
         // 没有数据了，等一段时间后有新的数据了再重新开始
-        return setTimeout(() => this.syncTracesFromBlockNumberByStep(startBlockNumber), syncGethToMysqlRestartTime);
+        return setTimeout(() => this.syncTracesFromBlockNumberByStep(startBlockNumber), syncRestartTime);
       }
       // 获取数组 [start, end)
       const blockNumbers = [];
