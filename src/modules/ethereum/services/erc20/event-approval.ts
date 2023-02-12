@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Timeout, Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
@@ -20,6 +20,7 @@ export class EthereumERC20Service_event_approval {
     private ethereumLogsRepository: Repository<EthereumLogs>,
   ) {}
 
+  @Timeout(0)
   @Cron(CronExpression.EVERY_HOUR)
   async main() {
     if (isDev) return;

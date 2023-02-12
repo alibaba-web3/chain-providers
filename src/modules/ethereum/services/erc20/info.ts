@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Timeout, Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
@@ -31,15 +31,16 @@ export class EthereumERC20Service_info {
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
   ) {}
 
+  @Timeout(0)
   @Cron(CronExpression.EVERY_HOUR)
   async main() {
     if (isDev) return;
     try {
       const entities = await Promise.all(erc20Contracts.map((erc20Contract) => this.getEntity(erc20Contract)));
       await this.ethereumERC20Repository.upsert(entities, ['contract_address']);
-      debug('sync ERC20 basic info success, entities:', entities);
+      debug('sync ERC20 info success, entities:', entities);
     } catch (e) {
-      debug('sync ERC20 basic info error:', e);
+      debug('sync ERC20 info error:', e);
     }
   }
 
