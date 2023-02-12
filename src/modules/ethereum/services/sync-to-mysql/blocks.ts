@@ -18,7 +18,7 @@ export class EthereumSyncGethToMysqlService_blocks {
   ) {}
 
   @Timeout(0)
-  async syncBlocks() {
+  async main() {
     if (!isProd) return;
     const block = await this.getLatestBlockFromMysql();
     this.syncBlocksFromNumber(block ? block.block_number + 1 : 0);

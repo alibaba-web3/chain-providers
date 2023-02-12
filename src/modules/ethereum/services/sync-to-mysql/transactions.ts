@@ -17,7 +17,7 @@ export class EthereumSyncGethToMysqlService_transactions {
   ) {}
 
   @Timeout(0)
-  async syncTransactions() {
+  async main() {
     if (!isProd) return;
     const transaction = await this.getLatestTransactionFromMysql();
     if (transaction) {

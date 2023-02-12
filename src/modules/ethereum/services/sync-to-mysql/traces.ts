@@ -17,7 +17,7 @@ export class EthereumSyncGethToMysqlService_traces {
   ) {}
 
   @Timeout(0)
-  async syncTraces() {
+  async main() {
     if (!isProd) return;
     const traces = await this.getLatestStepTracesFromMysql();
     if (traces.length > 0) {

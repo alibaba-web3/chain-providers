@@ -23,7 +23,7 @@ interface InfoFromMarket {
 }
 
 @Injectable()
-export class EthereumERC20BasicInfoService {
+export class EthereumERC20Service_info {
   constructor(
     @InjectRepository(EthereumERC20)
     private ethereumERC20Repository: Repository<EthereumERC20>,
@@ -32,7 +32,7 @@ export class EthereumERC20BasicInfoService {
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
-  async syncERC20BasicInfo() {
+  async main() {
     if (!isProd) return;
     try {
       const entities = await Promise.all(erc20Contracts.map((erc20Contract) => this.getEntity(erc20Contract)));

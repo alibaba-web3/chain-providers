@@ -17,7 +17,7 @@ export class EthereumSyncGethToMysqlService_logs {
   ) {}
 
   @Timeout(0)
-  async syncLogs() {
+  async main() {
     if (!isProd) return;
     const log = await this.getLatestLogFromMysql();
     if (log) {

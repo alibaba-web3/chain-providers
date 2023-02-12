@@ -10,7 +10,7 @@ import { debug } from '@/utils';
 import { ethers, BigNumber } from 'ethers';
 
 @Injectable()
-export class EthereumERC20EventTransferService {
+export class EthereumERC20Service_event_transfer {
   constructor(
     @InjectRepository(EthereumERC20)
     private ethereumERC20Repository: Repository<EthereumERC20>,

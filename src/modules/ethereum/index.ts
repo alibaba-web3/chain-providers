@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EthereumJsonRpcController } from './controllers/json-rpc';
+import { EthereumGethService } from './services/geth';
 import { EthereumSyncGethToMysqlService_blocks } from './services/sync-to-mysql/blocks';
 import { EthereumSyncGethToMysqlService_transactions } from './services/sync-to-mysql/transactions';
 import { EthereumSyncGethToMysqlService_logs } from './services/sync-to-mysql/logs';
 import { EthereumSyncGethToMysqlService_traces } from './services/sync-to-mysql/traces';
-import { EthereumGethService } from './services/geth';
-import { EthereumERC20BasicInfoService } from './services/erc20/basic-info';
+import { EthereumERC20Service_info } from './services/erc20/basic-info';
+import { EthereumERC20Service_event_transfer } from './services/erc20/event-transfer';
+import { EthereumERC20Service_event_approval } from './services/erc20/event-approval';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
@@ -21,12 +23,14 @@ import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-tran
 @Module({
   controllers: [EthereumJsonRpcController],
   providers: [
+    EthereumGethService,
     EthereumSyncGethToMysqlService_blocks,
     EthereumSyncGethToMysqlService_transactions,
     EthereumSyncGethToMysqlService_logs,
     EthereumSyncGethToMysqlService_traces,
-    EthereumGethService,
-    EthereumERC20BasicInfoService,
+    EthereumERC20Service_info,
+    EthereumERC20Service_event_transfer,
+    EthereumERC20Service_event_approval,
     DingTalkSendService,
   ],
   imports: [
@@ -43,11 +47,11 @@ import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-tran
     ]),
   ],
   exports: [
+    EthereumGethService,
     EthereumSyncGethToMysqlService_blocks,
     EthereumSyncGethToMysqlService_transactions,
     EthereumSyncGethToMysqlService_logs,
     EthereumSyncGethToMysqlService_traces,
-    EthereumGethService,
   ],
 })
 export class EthereumModule {}
