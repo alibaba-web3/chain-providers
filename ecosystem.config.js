@@ -1,18 +1,8 @@
 module.exports = {
   apps: [
     {
-      name: 'chain-providers (production)',
+      name: 'chain-providers',
       script: './dist/src/main.js',
-      env: {
-        NODE_ENV: 'production',
-      },
-    },
-    {
-      name: 'chain-providers (test)',
-      script: './dist/src/main.js',
-      env: {
-        NODE_ENV: 'test',
-      },
     },
   ],
 };
