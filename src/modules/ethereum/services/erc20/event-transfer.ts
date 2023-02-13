@@ -43,7 +43,7 @@ export class EthereumERC20Service_event_transfer {
       this.syncTransferEvents(contract_address, creation_transaction_hash);
       console.log(`start sync erc20 transfer events (symbol: ${symbol})`);
     });
-    console.log(`start sync erc20 transfer events (token count: ${tokens.length})`);
+    console.log(`tokens count: ${tokens.length}`);
   }
 
   async syncTransferEvents(contractAddress: string, creationTransactionHash: string) {
@@ -59,7 +59,11 @@ export class EthereumERC20Service_event_transfer {
       const creationTransaction = await this.ethereumTransactionsRepository.findOneBy({
         transaction_hash: creationTransactionHash,
       });
-      this.syncTransferEventsFromBlockNumber(contractAddress, creationTransaction.block_number);
+      if (creationTransaction) {
+        this.syncTransferEventsFromBlockNumber(contractAddress, creationTransaction.block_number);
+      } else {
+        console.log(`creationTransaction not found (hash: ${creationTransactionHash})`);
+      }
     }
   }
 
@@ -75,7 +79,7 @@ export class EthereumERC20Service_event_transfer {
   // 推荐阅读：理解以太坊的 event logs
   // https://medium.com/mycrypto/understanding-event-logs-on-the-ethereum-blockchain-f4ae7ba50378
   async syncTransferEventsFromBlockNumber(contractAddress: string, blockNumber: number) {
-    if (blockNumber > this.latestLogBlockNumber) {
+    if (blockNumber >= this.latestLogBlockNumber) {
       // 没有数据了，等一段时间后有新的数据了再重新开始
       return setTimeout(async () => {
         const latestLog = await this.ethereumSyncGethToMysqlService_logs.getLatestLogFromMysql();

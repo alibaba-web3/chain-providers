@@ -29,8 +29,8 @@ import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-tran
     EthereumSyncGethToMysqlService_logs,
     EthereumSyncGethToMysqlService_traces,
     EthereumERC20Service_info,
-    // EthereumERC20Service_event_transfer,
-    // EthereumERC20Service_event_approval,
+    EthereumERC20Service_event_transfer,
+    EthereumERC20Service_event_approval,
     DingTalkSendService,
   ],
   imports: [
