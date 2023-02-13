@@ -6,7 +6,6 @@ import { EthereumSyncGethToMysqlService_transactions } from '@/modules/ethereum/
 import { EthereumSyncGethToMysqlService_logs } from '@/modules/ethereum/services/sync-to-mysql/logs';
 import { EthereumSyncGethToMysqlService_traces } from '@/modules/ethereum/services/sync-to-mysql/traces';
 import { dingTalkBotUrls } from '@/constants';
-import { debug } from '@/utils';
 
 interface MessageBody {
   msgId: string;
@@ -43,9 +42,9 @@ export class DingTalkBotController {
     const { conversationId, msgtype, text } = body;
     const url = dingTalkBotUrls[conversationId];
     if (url) {
-      debug(`[dingtalk/bot] receive message. conversation id: "${conversationId}". body:`, body);
+      console.log(`[dingtalk/bot] receive message. conversation id: "${conversationId}". body:`, body);
     } else {
-      return debug('[dingtalk/bot] conversation id not in whitelist. body:', body);
+      return console.log('[dingtalk/bot] conversation id not in whitelist. body:', body);
     }
     if (msgtype === 'text' && text.content.trim().toLowerCase() === 'syncing') {
       const [peerCount, syncing, currentBlockNumber, latestBlockInMysql, latestTransactionInMysql, latestLogInMysql, latestTraceFromMysql] =
