@@ -1,6 +1,7 @@
 // 在最前面初始化环境变量
 // eslint-disable-next-line
 require('dotenv').config();
+console.log('process.env', process.env);
 
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
