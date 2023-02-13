@@ -1,7 +1,6 @@
 // 在最前面初始化环境变量
 // eslint-disable-next-line
 require('dotenv').config();
-console.log('process.env', process.env);
 
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
@@ -17,6 +16,8 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
 import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
+
+console.log('process.env', process.env);
 
 @Module({
   imports: [

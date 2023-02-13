@@ -62,7 +62,7 @@ export class EthereumERC20Service_event_transfer {
       if (creationTransaction) {
         this.syncTransferEventsFromBlockNumber(contractAddress, creationTransaction.block_number);
       } else {
-        console.log(`creationTransaction not found (hash: ${creationTransactionHash})`);
+        console.log(`sync erc20 transfer events failed. creation transaction not found: ${creationTransactionHash}`);
       }
     }
   }
