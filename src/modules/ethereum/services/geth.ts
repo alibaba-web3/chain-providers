@@ -105,11 +105,17 @@ export class EthereumGethService {
 
   async request<T>(body: EthereumJsonRpcRequest) {
     const res = await firstValueFrom(
-      this.httpService.post(process.env.GETH_HTTP_URL, {
-        jsonrpc: '2.0',
-        id: Date.now(),
-        ...body,
-      }),
+      this.httpService.post(
+        process.env.GETH_HTTP_URL,
+        {
+          jsonrpc: '2.0',
+          id: Date.now(),
+          ...body,
+        },
+        {
+          timeout: 20 * 60 * 1000,
+        },
+      ),
     );
     return res.data as T;
   }
