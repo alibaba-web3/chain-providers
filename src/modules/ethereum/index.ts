@@ -10,6 +10,7 @@ import { EthereumSyncGethToMysqlService_traces } from './services/sync-to-mysql/
 import { EthereumERC20Service_info } from './services/erc20/info';
 import { EthereumERC20Service_event_transfer } from './services/erc20/event-transfer';
 import { EthereumERC20Service_event_approval } from './services/erc20/event-approval';
+import { EthereumERC20Service_balance_day } from './services/erc20/balance-day';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
@@ -31,6 +32,7 @@ import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-tran
     EthereumERC20Service_info,
     EthereumERC20Service_event_transfer,
     EthereumERC20Service_event_approval,
+    EthereumERC20Service_balance_day,
     DingTalkSendService,
   ],
   imports: [
