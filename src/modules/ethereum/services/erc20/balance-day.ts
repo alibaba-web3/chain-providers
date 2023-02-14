@@ -10,7 +10,7 @@ import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { debug, abis, ContractWithProvider } from '@/utils';
 import { isDev, isProd, syncRestartTime } from '@/constants';
-import { BigNumber } from 'ethers';
+import { BigNumber, FixedNumber } from 'ethers';
 import dayjs from 'dayjs';
 
 function getStartOfDay(date: Date, offset = 0) {
@@ -115,9 +115,9 @@ export class EthereumERC20Service_balance_day {
         owners.map((owner, i) => ({
           contract_address: contractAddress,
           owner,
-          amount: balances[i], // TODO
+          amount: FixedNumber.from(balances[i].toString()), // TODO
           amount_raw: balances[i],
-          amount_usd: BigNumber.from(0), // TODO
+          amount_usd: FixedNumber.from(0), // TODO
           date: date,
         })),
       );
