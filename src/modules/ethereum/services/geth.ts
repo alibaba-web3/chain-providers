@@ -188,7 +188,7 @@ export class EthereumGethService {
   async debug_traceTransaction_callTracer(transactionHash: string): Promise<EthereumGethServiceResponse.TraceTransaction | null> {
     const { result } = await this.request<EthereumJsonRpcResponse.DebugTraceTransaction>({
       method: 'debug_traceTransaction',
-      params: [transactionHash, { tracer: 'callTracer' }],
+      params: [transactionHash, { tracer: 'callTracer', timeout: '20m' }],
     });
     return result && transformTraceTransaction(result);
   }
