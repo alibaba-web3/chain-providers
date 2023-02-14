@@ -62,7 +62,7 @@ export class EthereumERC20Service_event_approval {
       if (creationTransaction) {
         this.syncApprovalEventsFromBlockNumber(contractAddress, creationTransaction.block_number);
       } else {
-        console.log(`creationTransaction not found (hash: ${creationTransactionHash})`);
+        console.log(`sync erc20 approval events failed. creation transaction not found: ${creationTransactionHash}`);
       }
     }
   }

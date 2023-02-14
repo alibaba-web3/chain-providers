@@ -1,4 +1,5 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { BigNumber } from 'ethers';
 
 @Entity()
 export class EthereumERC20BalanceDay {
@@ -11,14 +12,35 @@ export class EthereumERC20BalanceDay {
   @Column('char', { length: 42 })
   owner: string;
 
-  @Column('decimal')
-  amount: number;
+  @Column('decimal', {
+    precision: 30,
+    scale: 8,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => BigNumber.from(v),
+    },
+  })
+  amount: BigNumber;
 
-  @Column('decimal')
-  amount_raw: number;
+  @Column('decimal', {
+    precision: 50,
+    scale: 0,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => BigNumber.from(v),
+    },
+  })
+  amount_raw: BigNumber;
 
-  @Column('decimal')
-  amount_usd: number;
+  @Column('decimal', {
+    precision: 30,
+    scale: 8,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => BigNumber.from(v),
+    },
+  })
+  amount_usd: BigNumber;
 
   @Column('datetime')
   date: Date;
