@@ -57,14 +57,19 @@ export class EthereumERC20Service_balance_day {
     const balance = await this.getLatestBalanceDayFromMysql(contractAddress);
     if (balance) {
       // 由于除了主键，没有其它能标识唯一行的字段，所以先删掉数据再重新 insert 而不是 upsert
-      await this.ethereumERC20BalanceDayRepository.delete({ contract_address: contractAddress, date: balance.date });
+      await this.ethereumERC20BalanceDayRepository.delete({
+        contract_address: contractAddress,
+        date: getStartOfDay(balance.date),
+      });
       this.syncBalanceDayFromDate(contractAddress, getStartOfDay(balance.date, -1));
     } else {
-      const creationTransaction = await this.ethereumTransactionsRepository.findOneBy({ transaction_hash: creationTransactionHash });
+      const creationTransaction = await this.ethereumTransactionsRepository.findOneBy({
+        transaction_hash: creationTransactionHash,
+      });
       if (creationTransaction) {
         this.syncBalanceDayFromDate(contractAddress, getStartOfDay(creationTransaction.block_timestamp));
       } else {
-        console.log(`[${symbol}] sync erc20 balance day failed. creation transaction not found: ${creationTransactionHash}`);
+        console.log(`sync erc20 balance day failed. (${symbol}) creation tx not found: ${creationTransactionHash}`);
       }
     }
   }
@@ -79,7 +84,6 @@ export class EthereumERC20Service_balance_day {
   }
 
   async syncBalanceDayFromDate(contractAddress: string, date: Date) {
-    // TODO check
     if (date >= this.latestTransferEventDates.get(contractAddress)) {
       // 没有数据了，等一段时间后有新的数据了再重新开始
       return setTimeout(async () => {
@@ -90,7 +94,6 @@ export class EthereumERC20Service_balance_day {
     const startDate = dayjs(getStartOfDay(date)).format('YYYY-MM-DD HH:mm:ss');
     const endDate = dayjs(getStartOfDay(date, 1)).format('YYYY-MM-DD HH:mm:ss');
     try {
-      // TODO check
       const events = await this.ethereumERC20EventTransferRepository
         .createQueryBuilder()
         .where(`contract_address = :contractAddress`, { contractAddress })
@@ -115,10 +118,9 @@ export class EthereumERC20Service_balance_day {
         owners.map((owner, i) => ({
           contract_address: contractAddress,
           owner,
-          amount: FixedNumber.from(balances[i].toString()), // TODO
           amount_raw: balances[i],
           amount_usd: FixedNumber.from(0), // TODO
-          date: date,
+          date: getStartOfDay(date, 1),
         })),
       );
       debug(`sync erc20 balance day (contract: ${contractAddress}, date: ${startDate}) success 🎉`);
