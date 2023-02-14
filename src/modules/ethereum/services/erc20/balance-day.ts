@@ -34,7 +34,7 @@ export class EthereumERC20Service_balance_day {
 
   // 记录 ethereum_erc20_event_transfer 表的同步进度
   // Map: contract address => latest date
-  latestTransferEventDates: Map<string, Date>;
+  latestTransferEventDates = new Map<string, Date>();
 
   @Timeout(0)
   @Cron(CronExpression.EVERY_HOUR)
