@@ -49,8 +49,8 @@ export class EthereumERC20Service_balance_day {
   }
 
   async cacheLatestTransferEventDate(contractAddress: string) {
-    const { block_timestamp } = await this.ethereumERC20Service_event_transfer.getLatestTransferEventFromMysql(contractAddress);
-    this.latestTransferEventDates.set(contractAddress, getStartOfDay(block_timestamp));
+    const event = await this.ethereumERC20Service_event_transfer.getLatestTransferEventFromMysql(contractAddress);
+    if (event) this.latestTransferEventDates.set(contractAddress, getStartOfDay(event.block_timestamp));
   }
 
   async syncBalanceDay(symbol: string, contractAddress: string, creationTransactionHash: string) {
