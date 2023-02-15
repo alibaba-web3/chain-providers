@@ -4,4 +4,4 @@ export const syncRestartTime = 60 * 60 * 1000;
 // 以太坊的第一条交易在 https://etherscan.io/block/46147
 export const ethereumBlockNumberOfFirstTransaction = 46147;
 
-export const ethereumTracesSyncStep = 100;
+export const ethereumTracesSyncStep = 2;

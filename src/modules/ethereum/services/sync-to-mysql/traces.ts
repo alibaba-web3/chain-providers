@@ -18,7 +18,7 @@ export class EthereumSyncGethToMysqlService_traces {
     private dingTalkSendService: DingTalkSendService,
   ) {}
 
-  // @Timeout(0)
+  @Timeout(0)
   async main() {
     if (isDev) return;
     const traces = await this.getLatestStepTracesFromMysql();
