@@ -22,7 +22,7 @@ export async function request<T>(url: string, options: RequestOptions = {}): Pro
     return res.data as T;
   } catch (e) {
     if (retry > 0) {
-      return retryFn((count) => {
+      return tryFn((count) => {
         console.log(`[request] retry (${count}) ${method} ${url}`);
         return request(url, options);
       }, retry);
@@ -31,13 +31,13 @@ export async function request<T>(url: string, options: RequestOptions = {}): Pro
   }
 }
 
-export async function retryFn<T>(fn: (count: number) => Promise<T>, n: number, count = 1): Promise<T> {
+export async function tryFn<T>(fn: (count: number) => Promise<T>, n: number, count = 1): Promise<T> {
   if (n <= 0) throw new Error('[retry] n must > 0');
   if (n < count) throw new Error('[retry] n must >= count');
   try {
     return await fn(count);
   } catch (e) {
     if (count === n) throw e;
-    return retryFn(fn, n, count + 1);
+    return tryFn(fn, n, count + 1);
   }
 }

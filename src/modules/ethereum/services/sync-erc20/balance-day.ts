@@ -8,7 +8,7 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
-import { debug, getStartOfDay, ContractWithProvider, abis } from '@/utils';
+import { debug, getStartOfDay, tryFn, ContractWithProvider, abis } from '@/utils';
 import { isDev, isProd, syncRestartTime } from '@/constants';
 import { BigNumber, FixedNumber } from 'ethers';
 import dayjs from 'dayjs';
@@ -100,11 +100,14 @@ export class EthereumERC20Service_balance_day {
         }, new Set<string>()),
       ];
       // 获取每个地址的余额
-      const balances: BigNumber[] = await Promise.all(
+      const balances = await Promise.all(
         owners.map((owner) => {
-          return new ContractWithProvider(contractAddress, abis.erc20).balanceOf(owner, {
-            blockTag: events[events.length - 1].block_number,
-          });
+          return tryFn<BigNumber>((count) => {
+            if (count > 1) console.log(`retry (${count - 1}) get erc20 balance of owner:`, owner);
+            return new ContractWithProvider(contractAddress, abis.erc20).balanceOf(owner, {
+              blockTag: events[events.length - 1].block_number,
+            });
+          }, 5);
         }),
       );
       await this.ethereumERC20BalanceDayRepository.insert(
