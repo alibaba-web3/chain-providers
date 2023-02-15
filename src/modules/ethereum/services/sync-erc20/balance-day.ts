@@ -8,7 +8,7 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
-import { debug, getStartOfDay, tryFn, ContractWithProvider, abis } from '@/utils';
+import { debug, getStartOfDay, tryFn, ContractWithRemoteProvider, abis } from '@/utils';
 import { isDev, isProd, syncRestartTime } from '@/constants';
 import { BigNumber, FixedNumber } from 'ethers';
 import dayjs from 'dayjs';
@@ -53,11 +53,11 @@ export class EthereumERC20Service_balance_day {
     if (balance) {
       // 由于除了主键，没有其它能标识唯一行的字段，所以先删掉数据再重新 insert 而不是 upsert
       await this.ethereumERC20BalanceDayRepository.delete({ contract_address: contractAddress, date: balance.date });
-      this.syncBalanceDayFromDate(contractAddress, getStartOfDay(balance.date, -1));
+      this.syncBalanceDayFromDate(symbol, contractAddress, getStartOfDay(balance.date, -1));
     } else {
       const creationTransaction = await this.ethereumTransactionsRepository.findOneBy({ transaction_hash: creationTransactionHash });
       if (creationTransaction) {
-        this.syncBalanceDayFromDate(contractAddress, getStartOfDay(creationTransaction.block_timestamp));
+        this.syncBalanceDayFromDate(symbol, contractAddress, getStartOfDay(creationTransaction.block_timestamp));
       } else {
         console.log(`sync erc20 balance day failed. creation tx not found: ${creationTransactionHash} (${symbol})`);
       }
@@ -73,13 +73,13 @@ export class EthereumERC20Service_balance_day {
     return balance;
   }
 
-  async syncBalanceDayFromDate(contractAddress: string, date: Date) {
+  async syncBalanceDayFromDate(symbol: string, contractAddress: string, date: Date) {
     if (!this.latestTransferEventDates.has(contractAddress)) return;
     if (date >= this.latestTransferEventDates.get(contractAddress)) {
       // 没有数据了，等一段时间后有新的数据了再重新开始
       return setTimeout(async () => {
         await this.cacheLatestTransferEventDate(contractAddress);
-        this.syncBalanceDayFromDate(contractAddress, date);
+        this.syncBalanceDayFromDate(symbol, contractAddress, date);
       }, syncRestartTime);
     }
     const startDate = dayjs(getStartOfDay(date)).format('YYYY-MM-DD HH:mm:ss');
@@ -103,11 +103,11 @@ export class EthereumERC20Service_balance_day {
       const balances = await Promise.all(
         owners.map((owner) => {
           return tryFn<BigNumber>((count) => {
-            if (count > 1) console.log(`retry (${count - 1}) get erc20 balance of owner:`, owner);
-            return new ContractWithProvider(contractAddress, abis.erc20).balanceOf(owner, {
+            if (count > 1) debug(`retry (${count - 1}) get erc20 balance of owner: ${owner} (${symbol})`);
+            return new ContractWithRemoteProvider(contractAddress, abis.erc20).balanceOf(owner, {
               blockTag: events[events.length - 1].block_number,
             });
-          }, 5);
+          }, 6);
         }),
       );
       await this.ethereumERC20BalanceDayRepository.insert(
@@ -127,6 +127,6 @@ export class EthereumERC20Service_balance_day {
       }
       debug(errorMessage);
     }
-    this.syncBalanceDayFromDate(contractAddress, getStartOfDay(date, 1));
+    this.syncBalanceDayFromDate(symbol, contractAddress, getStartOfDay(date, 1));
   }
 }

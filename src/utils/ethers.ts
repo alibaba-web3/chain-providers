@@ -1,7 +1,8 @@
-import { ethers, ContractInterface } from 'ethers';
+import { providers, getDefaultProvider, Contract, ContractInterface } from 'ethers';
 
-// https://docs.ethers.org/v5/api/providers/#providers-getDefaultProvider
-export const provider = ethers.getDefaultProvider('homestead', {
+export const localProvider = new providers.JsonRpcProvider(process.env.GETH_HTTP_URL);
+
+export const remoteProvider = getDefaultProvider('homestead', {
   quorum: 2,
   alchemy: process.env.ALCHEMY_API_KEY, // https://dashboard.alchemy.com/
   infura: process.env.INFURA_API_KEY, // https://app.infura.io/dashboard
@@ -10,8 +11,14 @@ export const provider = ethers.getDefaultProvider('homestead', {
   ankr: process.env.ANKR_API_KEY, // https://www.ankr.com/rpc/
 });
 
-export class ContractWithProvider extends ethers.Contract {
+export class ContractWithLocalProvider extends Contract {
   constructor(addressOrName: string, contractInterface: ContractInterface) {
-    super(addressOrName, contractInterface, provider);
+    super(addressOrName, contractInterface, localProvider);
+  }
+}
+
+export class ContractWithRemoteProvider extends Contract {
+  constructor(addressOrName: string, contractInterface: ContractInterface) {
+    super(addressOrName, contractInterface, remoteProvider);
   }
 }
