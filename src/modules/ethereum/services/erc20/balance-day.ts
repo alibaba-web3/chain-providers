@@ -59,7 +59,7 @@ export class EthereumERC20Service_balance_day {
       if (creationTransaction) {
         this.syncBalanceDayFromDate(contractAddress, getStartOfDay(creationTransaction.block_timestamp));
       } else {
-        console.log(`sync erc20 balance day failed. (${symbol}) creation tx not found: ${creationTransactionHash}`);
+        console.log(`sync erc20 balance day failed. creation tx not found: ${creationTransactionHash} (${symbol})`);
       }
     }
   }
