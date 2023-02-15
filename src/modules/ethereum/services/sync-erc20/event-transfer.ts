@@ -38,11 +38,10 @@ export class EthereumERC20Service_event_transfer {
       this.ethereumERC20Repository.find(),
     ]);
     this.latestLogBlockNumber = latestLog.block_number;
-    tokens.forEach(({ symbol, contract_address, creation_transaction_hash }) => {
+    tokens.forEach(({ contract_address, creation_transaction_hash }) => {
       this.syncTransferEvents(contract_address, creation_transaction_hash);
-      console.log(`start sync erc20 transfer events (symbol: ${symbol})`);
     });
-    console.log(`tokens count: ${tokens.length}`);
+    console.log('start syncing erc20 transfer events');
   }
 
   async syncTransferEvents(contractAddress: string, creationTransactionHash: string) {

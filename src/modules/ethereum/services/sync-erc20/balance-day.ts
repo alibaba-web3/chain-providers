@@ -40,7 +40,7 @@ export class EthereumERC20Service_balance_day {
       await this.cacheLatestTransferEventDate(contract_address);
       this.syncBalanceDay(symbol, contract_address, creation_transaction_hash);
     });
-    console.log(`start sync erc20 balance day`);
+    console.log(`start syncing erc20 balance day`);
   }
 
   async cacheLatestTransferEventDate(contractAddress: string) {

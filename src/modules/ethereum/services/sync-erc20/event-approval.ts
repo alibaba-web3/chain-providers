@@ -38,11 +38,10 @@ export class EthereumERC20Service_event_approval {
       this.ethereumERC20Repository.find(),
     ]);
     this.latestLogBlockNumber = latestLog.block_number;
-    tokens.forEach(({ symbol, contract_address, creation_transaction_hash }) => {
+    tokens.forEach(({ contract_address, creation_transaction_hash }) => {
       this.syncApprovalEvents(contract_address, creation_transaction_hash);
-      console.log(`start sync erc20 approval events (symbol: ${symbol})`);
     });
-    console.log(`tokens count: ${tokens.length}`);
+    console.log('start syncing erc20 approval events');
   }
 
   async syncApprovalEvents(contractAddress: string, creationTransactionHash: string) {
