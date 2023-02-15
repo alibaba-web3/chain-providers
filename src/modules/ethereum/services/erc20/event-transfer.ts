@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Timeout, Cron, CronExpression } from '@nestjs/schedule';
+import { Timeout } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
@@ -31,7 +31,6 @@ export class EthereumERC20Service_event_transfer {
   private latestLogBlockNumber: number;
 
   @Timeout(0)
-  @Cron(CronExpression.EVERY_HOUR)
   async main() {
     if (isDev) return;
     const [latestLog, tokens] = await Promise.all([
