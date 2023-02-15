@@ -9,7 +9,7 @@ export interface RequestOptions {
 }
 
 export async function request<T>(url: string, options: RequestOptions = {}): Promise<T> {
-  const { method, headers, data, timeout = 3000, retry = 0 } = options;
+  const { method, headers, data, timeout = 10000, retry = 0 } = options;
   try {
     const res = await axios({
       url,
