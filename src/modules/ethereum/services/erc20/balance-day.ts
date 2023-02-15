@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Timeout, Cron, CronExpression } from '@nestjs/schedule';
+import { Timeout } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
@@ -8,14 +8,10 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
-import { debug, abis, ContractWithProvider } from '@/utils';
+import { debug, getStartOfDay, ContractWithProvider, abis } from '@/utils';
 import { isDev, isProd, syncRestartTime } from '@/constants';
 import { BigNumber, FixedNumber } from 'ethers';
 import dayjs from 'dayjs';
-
-function getStartOfDay(date: Date, offset = 0) {
-  return dayjs(date).add(offset, 'day').startOf('day').toDate();
-}
 
 @Injectable()
 export class EthereumERC20Service_balance_day {
@@ -37,7 +33,6 @@ export class EthereumERC20Service_balance_day {
   latestTransferEventDates = new Map<string, Date>();
 
   @Timeout(0)
-  @Cron(CronExpression.EVERY_HOUR)
   async main() {
     if (isDev) return;
     const tokens = await this.ethereumERC20Repository.find();
@@ -57,15 +52,10 @@ export class EthereumERC20Service_balance_day {
     const balance = await this.getLatestBalanceDayFromMysql(contractAddress);
     if (balance) {
       // 由于除了主键，没有其它能标识唯一行的字段，所以先删掉数据再重新 insert 而不是 upsert
-      await this.ethereumERC20BalanceDayRepository.delete({
-        contract_address: contractAddress,
-        date: getStartOfDay(balance.date),
-      });
+      await this.ethereumERC20BalanceDayRepository.delete({ contract_address: contractAddress, date: balance.date });
       this.syncBalanceDayFromDate(contractAddress, getStartOfDay(balance.date, -1));
     } else {
-      const creationTransaction = await this.ethereumTransactionsRepository.findOneBy({
-        transaction_hash: creationTransactionHash,
-      });
+      const creationTransaction = await this.ethereumTransactionsRepository.findOneBy({ transaction_hash: creationTransactionHash });
       if (creationTransaction) {
         this.syncBalanceDayFromDate(contractAddress, getStartOfDay(creationTransaction.block_timestamp));
       } else {
@@ -84,6 +74,7 @@ export class EthereumERC20Service_balance_day {
   }
 
   async syncBalanceDayFromDate(contractAddress: string, date: Date) {
+    if (!this.latestTransferEventDates.has(contractAddress)) return;
     if (date >= this.latestTransferEventDates.get(contractAddress)) {
       // 没有数据了，等一段时间后有新的数据了再重新开始
       return setTimeout(async () => {
@@ -111,7 +102,9 @@ export class EthereumERC20Service_balance_day {
       // 获取每个地址的余额
       const balances: BigNumber[] = await Promise.all(
         owners.map((owner) => {
-          return new ContractWithProvider(contractAddress, abis.erc20).balanceOf(owner);
+          return new ContractWithProvider(contractAddress, abis.erc20).balanceOf(owner, {
+            blockTag: events[events.length - 1].block_number,
+          });
         }),
       );
       await this.ethereumERC20BalanceDayRepository.insert(
