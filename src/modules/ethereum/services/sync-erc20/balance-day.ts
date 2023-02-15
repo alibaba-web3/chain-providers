@@ -8,7 +8,7 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
-import { debug, getStartOfDay, tryFn, ContractWithRemoteProvider, abis } from '@/utils';
+import { debug, getStartOfDay, tryFn, ContractWithLocalProvider, abis } from '@/utils';
 import { isDev, isProd, syncRestartTime } from '@/constants';
 import { BigNumber, FixedNumber } from 'ethers';
 import dayjs from 'dayjs';
@@ -103,8 +103,8 @@ export class EthereumERC20Service_balance_day {
       const balances = await Promise.all(
         owners.map((owner) => {
           return tryFn<BigNumber>((count) => {
-            if (count > 1) debug(`retry (${count - 1}) get erc20 balance of owner: ${owner} (${symbol})`);
-            return new ContractWithRemoteProvider(contractAddress, abis.erc20).balanceOf(owner, {
+            if (count > 1) console.log(`retry (${count - 1}) get erc20 balance of owner: ${owner} (${symbol})`);
+            return new ContractWithLocalProvider(contractAddress, abis.erc20).balanceOf(owner, {
               blockTag: events[events.length - 1].block_number,
             });
           }, 6);
