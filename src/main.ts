@@ -17,7 +17,7 @@ import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-tran
 import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 
-console.log('process.env', process.env);
+console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
 
 @Module({
   imports: [
