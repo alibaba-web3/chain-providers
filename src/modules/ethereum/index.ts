@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EthereumJsonRpcController } from './controllers/json-rpc';
 import { EthereumGethService } from './services/geth';
@@ -36,7 +35,6 @@ import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-tran
     DingTalkSendService,
   ],
   imports: [
-    HttpModule,
     TypeOrmModule.forFeature([
       EthereumBlocks,
       EthereumTransactions,

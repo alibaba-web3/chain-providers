@@ -78,10 +78,10 @@ export class DingTalkBotController {
       texts.push(`transactions: ${mysqlTransactionSyncingProgress}%`);
       texts.push(`logs: ${mysqlLogSyncingProgress}%`);
       texts.push(`traces: ${mysqlTraceSyncingProgress}%`);
-      await this.dingTalkSendService.sendText(url, texts.join('\n'));
+      this.dingTalkSendService.sendText(url, texts.join('\n'));
     }
     if (msgtype === 'text' && text.content.trim().toLowerCase() === 'hi') {
-      await this.dingTalkSendService.sendText(url, 'hello');
+      this.dingTalkSendService.sendText(url, 'hello');
     }
   }
 }

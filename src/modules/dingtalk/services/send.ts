@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
 import { dingTalkConversationIds, dingTalkBotUrls } from '@/constants';
-import { firstValueFrom } from 'rxjs';
+import { request } from '@/utils';
 
 @Injectable()
 export class DingTalkSendService {
-  constructor(private httpService: HttpService) {}
-
-  sendText(url: string, content: string): Promise<any> {
-    return firstValueFrom(this.httpService.post(url, { msgtype: 'text', text: { content } }));
+  sendText(url: string, content: string) {
+    return request(url, {
+      data: { msgtype: 'text', text: { content } },
+    });
   }
 
   sendTextToTestRoom(content: string) {

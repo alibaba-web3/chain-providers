@@ -16,12 +16,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/axios": "^1.0.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/schedule": "^2.1.0",
     "@nestjs/typeorm": "^9.0.1",
+    "axios": "^1.3.3",
     "dayjs": "^1.11.7",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
@@ -29,7 +29,6 @@
     "puppeteer": "^19.5.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^7.2.0",
     "typeorm": "^0.3.11"
   },
   "devDependencies": {

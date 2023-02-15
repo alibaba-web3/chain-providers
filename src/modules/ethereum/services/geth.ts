@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
 import { EthereumJsonRpcRequest, EthereumJsonRpcResponse, EthereumJsonRpc } from '../types/json-rpc';
 import { EthereumGethServiceResponse } from '../types/geth';
+import { request } from '@/utils';
 
 const transformSyncing = (syncing: EthereumJsonRpc.Syncing): EthereumGethServiceResponse.Syncing => ({
   startingBlock: parseInt(syncing.startingBlock),
@@ -101,23 +100,15 @@ const transformTraceTransaction = (traceTransaction: EthereumJsonRpc.TraceTransa
 
 @Injectable()
 export class EthereumGethService {
-  constructor(private httpService: HttpService) {}
-
-  async request<T>(body: EthereumJsonRpcRequest) {
-    const res = await firstValueFrom(
-      this.httpService.post(
-        process.env.GETH_HTTP_URL,
-        {
-          jsonrpc: '2.0',
-          id: Date.now(),
-          ...body,
-        },
-        {
-          timeout: 20 * 60 * 1000,
-        },
-      ),
-    );
-    return res.data as T;
+  request<T>(body: EthereumJsonRpcRequest) {
+    return request<T>(process.env.GETH_HTTP_URL, {
+      data: {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        ...body,
+      },
+      timeout: 20 * 60 * 1000,
+    });
   }
 
   async eth_syncing(): Promise<EthereumGethServiceResponse.Syncing | boolean> {
