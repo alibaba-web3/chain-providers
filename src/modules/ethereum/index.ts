@@ -6,10 +6,10 @@ import { EthereumSyncGethToMysqlService_blocks } from './services/sync-to-mysql/
 import { EthereumSyncGethToMysqlService_transactions } from './services/sync-to-mysql/transactions';
 import { EthereumSyncGethToMysqlService_logs } from './services/sync-to-mysql/logs';
 import { EthereumSyncGethToMysqlService_traces } from './services/sync-to-mysql/traces';
-import { EthereumERC20Service_info } from './services/erc20/info';
-import { EthereumERC20Service_event_transfer } from './services/erc20/event-transfer';
-import { EthereumERC20Service_event_approval } from './services/erc20/event-approval';
-import { EthereumERC20Service_balance_day } from './services/erc20/balance-day';
+import { EthereumERC20Service_info } from './services/sync-erc20/info';
+import { EthereumERC20Service_event_transfer } from './services/sync-erc20/event-transfer';
+import { EthereumERC20Service_event_approval } from './services/sync-erc20/event-approval';
+import { EthereumERC20Service_balance_day } from './services/sync-erc20/balance-day';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
