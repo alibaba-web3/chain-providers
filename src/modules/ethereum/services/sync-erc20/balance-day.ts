@@ -100,12 +100,16 @@ export class EthereumERC20Service_balance_day {
         }, new Set<string>()),
       ];
       // 获取每个地址的余额
+      const lastEventBlockNumber = events[events.length - 1].block_number;
       const balances = await Promise.all(
         owners.map((owner) => {
           return tryFn<BigNumber>((count) => {
-            if (count > 1) console.log(`retry (${count - 1}) get erc20 balance of owner: ${owner} (${symbol})`);
+            if (count > 1) {
+              console.log(`retry (${count - 1}) get erc20 balance of`);
+              console.log(`owner: ${owner}, block: ${lastEventBlockNumber}, contract: ${contractAddress} (${symbol})`);
+            }
             return new ContractWithLocalProvider(contractAddress, abis.erc20).balanceOf(owner, {
-              blockTag: events[events.length - 1].block_number,
+              blockTag: lastEventBlockNumber,
             });
           }, 6);
         }),
@@ -119,9 +123,10 @@ export class EthereumERC20Service_balance_day {
           date: getStartOfDay(date, 1),
         })),
       );
-      debug(`sync erc20 balance day (contract: ${contractAddress}, date: ${startDate}) success 🎉`);
+      console.log(`sync erc20 balance day success. 🎉 ( ${startDate} ~ ${endDate} )`);
+      console.log(`contract: ${contractAddress} (${symbol}), owner count: ${owners.length}`);
     } catch (e) {
-      const errorMessage = `sync erc20 balance day (contract: ${contractAddress}, date: ${startDate}) error: ${e.message}`;
+      const errorMessage = `sync erc20 balance day failed.\ndate: ${startDate} ~ ${endDate}\ncontract: ${contractAddress} (${symbol})\nerror: ${e.message}`;
       if (isProd) {
         this.dingTalkSendService.sendTextToTestRoom(errorMessage);
       }
