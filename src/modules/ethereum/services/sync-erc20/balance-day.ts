@@ -32,7 +32,7 @@ export class EthereumERC20Service_balance_day {
   // Map: contract address => latest date
   latestTransferEventDates = new Map<string, Date>();
 
-  // @Timeout(0)
+  @Timeout(0)
   async main() {
     if (isDev) return;
     const tokens = await this.ethereumERC20Repository.find();
@@ -91,47 +91,44 @@ export class EthereumERC20Service_balance_day {
         .andWhere(`block_timestamp >= :startDate`, { startDate })
         .andWhere(`block_timestamp < :endDate`, { endDate })
         .getMany();
-      // 根据 events 的 from / to 获取当天的活跃地址，并使用 Set 去重
-      const owners = [
-        ...events.reduce((set, event) => {
-          set.add(event.from);
-          set.add(event.to);
-          return set;
-        }, new Set<string>()),
-      ];
-      // 获取每个地址的余额
-      const lastEventBlockNumber = events[events.length - 1].block_number;
-      const balances = await Promise.all(
-        owners.map((owner) => {
-          return tryFn<BigNumber>((count) => {
-            if (count > 1) {
-              console.log(`retry (${count - 1}) get erc20 balance of`);
-              console.log(`owner: ${owner}, block: ${lastEventBlockNumber}, contract: ${contractAddress} (${symbol})`);
-            }
-            return new ContractWithLocalProvider(contractAddress, abis.erc20).balanceOf(owner, {
-              blockTag: lastEventBlockNumber,
-            });
-          }, 6);
-        }),
-      );
-      await this.ethereumERC20BalanceDayRepository.insert(
-        owners.map((owner, i) => ({
-          contract_address: contractAddress,
-          owner,
-          amount_raw: balances[i],
-          amount_usd: FixedNumber.from(0), // TODO
-          date: getStartOfDay(date, 1),
-        })),
-      );
-      console.log(`sync erc20 balance day success. 🎉 ( ${startDate} ~ ${endDate} )`);
-      console.log(`contract: ${contractAddress} (${symbol}), owner count: ${owners.length}`);
+      const entities = await this.getEntities(events, symbol, contractAddress, date);
+      await this.ethereumERC20BalanceDayRepository.insert(entities);
+      console.log(`sync erc20 balance day success. contract: ${contractAddress} (${symbol}), date: ${endDate}`);
     } catch (e) {
-      const errorMessage = `sync erc20 balance day failed.\ndate: ${startDate} ~ ${endDate}\ncontract: ${contractAddress} (${symbol})\nerror: ${e.message}`;
+      const errorMessage = `sync erc20 balance day failed.\ncontract: ${contractAddress} (${symbol})\ndate: ${endDate}\nerror: ${e.message}`;
       if (isProd) {
         this.dingTalkSendService.sendTextToTestRoom(errorMessage);
       }
       debug(errorMessage);
     }
     this.syncBalanceDayFromDate(symbol, contractAddress, getStartOfDay(date, 1));
+  }
+
+  async getEntities(events: EthereumERC20EventTransfer[], symbol: string, contractAddress: string, date: Date) {
+    const lastEventBlockNumber = events[events.length - 1].block_number;
+    const owners = [...events.reduce((set, { from, to }) => set.add(from).add(to), new Set<string>())];
+    const balances = await this.getBalancesByStep(owners, lastEventBlockNumber, contractAddress, symbol);
+    return owners.map((owner, i) => ({
+      contract_address: contractAddress,
+      owner,
+      amount_raw: balances[i],
+      amount_usd: FixedNumber.from(0), // TODO
+      date: getStartOfDay(date, 1),
+    }));
+  }
+
+  async getBalancesByStep(owners: string[], blockNumber: number, contractAddress: string, symbol: string, balances: BigNumber[] = [], step = 100) {
+    if (owners.length === 0) return balances;
+    const promises = owners.slice(0, step).map((owner) => {
+      return tryFn<BigNumber>((count) => {
+        if (count > 1) {
+          console.log(`retry (${count - 1}) get erc20 balance of`);
+          console.log(`owner: ${owner}, block: ${blockNumber}, contract: ${contractAddress} (${symbol})`);
+        }
+        return new ContractWithLocalProvider(contractAddress, abis.erc20).balanceOf(owner, { blockTag: blockNumber });
+      }, 6);
+    });
+    balances = balances.concat(await Promise.all(promises));
+    return this.getBalancesByStep(owners.slice(step), blockNumber, contractAddress, symbol, balances, step);
   }
 }
