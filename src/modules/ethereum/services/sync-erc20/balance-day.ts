@@ -91,9 +91,11 @@ export class EthereumERC20Service_balance_day {
         .andWhere(`block_timestamp >= :startDate`, { startDate })
         .andWhere(`block_timestamp < :endDate`, { endDate })
         .getMany();
-      const entities = await this.getEntities(events, symbol, contractAddress, date);
-      await this.ethereumERC20BalanceDayRepository.insert(entities);
-      console.log(`sync erc20 balance day success. contract: ${contractAddress} (${symbol}), date: ${endDate}`);
+      if (events.length > 0) {
+        const entities = await this.getEntities(events, symbol, contractAddress, date);
+        await this.ethereumERC20BalanceDayRepository.insert(entities);
+        console.log(`sync erc20 balance day success. contract: ${contractAddress} (${symbol}), date: ${endDate}`);
+      }
     } catch (e) {
       const errorMessage = `sync erc20 balance day failed.\ncontract: ${contractAddress} (${symbol})\ndate: ${endDate}\nerror: ${e.message}`;
       if (isProd) {
