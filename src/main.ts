@@ -7,6 +7,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DingTalkModule } from '@/modules/dingtalk';
+import { BitcoinModule } from '@/modules/bitcoin';
 import { EthereumModule } from '@/modules/ethereum';
 import { EthereumBlocks } from '@/entities/ethereum-blocks';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
@@ -41,6 +42,7 @@ console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
     }),
     ScheduleModule.forRoot(),
     DingTalkModule,
+    BitcoinModule,
     EthereumModule,
   ],
 })
