@@ -20,10 +20,10 @@ export class EthereumERC20EventTransfer {
     scale: 0,
     transformer: {
       to: (v: BigNumber) => v.toString(),
-      from: (v: string) => BigNumber.from(v),
+      from: (v: string) => v && BigNumber.from(v),
     },
   })
-  value: BigNumber;
+  value?: BigNumber;
 
   @Column('int', { unsigned: true })
   block_number: number;

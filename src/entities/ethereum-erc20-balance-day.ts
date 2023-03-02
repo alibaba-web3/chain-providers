@@ -17,20 +17,20 @@ export class EthereumERC20BalanceDay {
     scale: 0,
     transformer: {
       to: (v: BigNumber) => v.toString(),
-      from: (v: string) => BigNumber.from(v),
+      from: (v: string) => v && BigNumber.from(v),
     },
   })
-  amount_raw: BigNumber;
+  amount_raw?: BigNumber;
 
   @Column('decimal', {
     precision: 30,
     scale: 8,
     transformer: {
       to: (v: FixedNumber) => v.toString(),
-      from: (v: string) => FixedNumber.from(v),
+      from: (v: string) => v && FixedNumber.from(v),
     },
   })
-  amount_usd: FixedNumber;
+  amount_usd?: FixedNumber;
 
   @Column('datetime')
   date: Date;

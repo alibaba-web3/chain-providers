@@ -40,6 +40,7 @@ export class EthereumERC20Service_info {
     try {
       console.log('start syncing erc20 info');
       const oldEntities = await this.ethereumERC20Repository.find();
+      console.log('oldEntities:', oldEntities);
       const newEntities = await Promise.all(oldEntities.map((entity) => this.getNewEntity(entity)));
       await this.ethereumERC20Repository.upsert(newEntities, ['contract_address']);
       debug(`sync erc20 info success, entities(${newEntities.length}):`, newEntities);

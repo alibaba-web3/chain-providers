@@ -35,40 +35,40 @@ export class EthereumERC20 {
     scale: 0,
     transformer: {
       to: (v: BigNumber) => v.toString(),
-      from: (v: string) => BigNumber.from(v),
+      from: (v: string) => v && BigNumber.from(v),
     },
   })
-  total_supply: BigNumber;
+  total_supply?: BigNumber;
 
   @Column('decimal', {
     precision: 50,
     scale: 0,
     transformer: {
       to: (v: BigNumber) => v.toString(),
-      from: (v: string) => BigNumber.from(v),
+      from: (v: string) => v && BigNumber.from(v),
     },
   })
-  circulating_supply: BigNumber;
+  circulating_supply?: BigNumber;
 
   @Column('decimal', {
     precision: 30,
     scale: 8,
     transformer: {
       to: (v: FixedNumber) => v.toString(),
-      from: (v: string) => FixedNumber.from(v),
+      from: (v: string) => v && FixedNumber.from(v),
     },
   })
-  market_cap_usd_latest: FixedNumber;
+  market_cap_usd_latest?: FixedNumber;
 
   @Column('decimal', {
     precision: 30,
     scale: 8,
     transformer: {
       to: (v: FixedNumber) => v.toString(),
-      from: (v: string) => FixedNumber.from(v),
+      from: (v: string) => v && FixedNumber.from(v),
     },
   })
-  volume_usd_24h: FixedNumber;
+  volume_usd_24h?: FixedNumber;
 
   @Column('datetime')
   last_updated: Date;
