@@ -35,12 +35,14 @@ export class EthereumERC20Service_balance_day {
   @Timeout(0)
   async main() {
     if (isDev) return;
-    const tokens = await this.ethereumERC20Repository.find();
-    tokens.forEach(async ({ symbol, contract_address, creation_transaction_hash }) => {
-      await this.cacheLatestTransferEventDate(contract_address);
-      this.syncBalanceDay(symbol, contract_address, creation_transaction_hash);
-    });
     console.log(`start syncing erc20 balance day`);
+    const tokens = await this.ethereumERC20Repository.find();
+    tokens
+      .filter(({ deployer }) => deployer)
+      .forEach(async ({ symbol, contract_address, creation_transaction_hash }) => {
+        await this.cacheLatestTransferEventDate(contract_address);
+        this.syncBalanceDay(symbol, contract_address, creation_transaction_hash);
+      });
   }
 
   async cacheLatestTransferEventDate(contractAddress: string) {

@@ -37,41 +37,46 @@ export class EthereumERC20Service_info {
   @Cron(CronExpression.EVERY_HOUR)
   async main() {
     if (isDev) return;
+    console.log('start syncing erc20 info');
+    const oldEntities = await this.ethereumERC20Repository.find();
+    const newEntities = await Promise.all(oldEntities.map((entity) => this.getNewEntity(entity)));
+    await this.ethereumERC20Repository.upsert(
+      newEntities.filter((e) => !!e),
+      ['contract_address'],
+    );
+    console.log(`sync erc20 info success. (old: ${oldEntities.length}, new: ${newEntities.length})`);
+  }
+
+  async getNewEntity({ contract_address, creation_transaction_hash, is_stable }: EthereumERC20) {
     try {
-      console.log('start syncing erc20 info');
-      const oldEntities = await this.ethereumERC20Repository.find();
-      console.log('oldEntities:', oldEntities);
-      const newEntities = await Promise.all(oldEntities.map((entity) => this.getNewEntity(entity)));
-      await this.ethereumERC20Repository.upsert(newEntities, ['contract_address']);
-      debug(`sync erc20 info success, entities(${newEntities.length}):`, newEntities);
+      const [infoFromContract, infoFromMarket, creationTransaction] = await Promise.all([
+        this.getInfoFromContract(contract_address),
+        this.getInfoFromMarket(contract_address),
+        this.ethereumTransactionsRepository.findOneBy({ transaction_hash: creation_transaction_hash }),
+      ]);
+      return {
+        contract_address,
+        name: infoFromContract.name,
+        symbol: infoFromContract.symbol,
+        decimals: infoFromContract.decimals,
+        is_stable,
+        deployer: creationTransaction?.from || '',
+        deploy_time: creationTransaction?.block_timestamp || '',
+        creation_transaction_hash,
+        description: infoFromMarket.description,
+        total_supply: infoFromContract.totalSupply,
+        circulating_supply: BigNumber.from(infoFromMarket.circulating_supply),
+        market_cap_usd_latest: FixedNumber.from(infoFromMarket.market_cap_usd_latest),
+        volume_usd_24h: FixedNumber.from(infoFromMarket.volume_usd_24h),
+        last_updated: new Date(),
+      };
     } catch (e) {
-      const errorMessage = `sync erc20 info error: ${e.message}`;
+      const errorMessage = `sync erc20 info failed.\ncontract: ${contract_address}\nerror: ${e.message}`;
       if (isProd) {
         this.dingTalkSendService.sendTextToTestRoom(errorMessage);
       }
       debug(errorMessage);
     }
-  }
-
-  async getNewEntity({ contract_address, creation_transaction_hash }: EthereumERC20) {
-    const [infoFromContract, infoFromMarket, creationTransaction] = await Promise.all([
-      this.getInfoFromContract(contract_address),
-      this.getInfoFromMarket(contract_address),
-      this.ethereumTransactionsRepository.findOneBy({ transaction_hash: creation_transaction_hash }),
-    ]);
-    return {
-      name: infoFromContract.name,
-      symbol: infoFromContract.symbol,
-      decimals: infoFromContract.decimals,
-      deployer: creationTransaction?.from || '',
-      deploy_time: creationTransaction?.block_timestamp || '',
-      description: infoFromMarket.description,
-      total_supply: infoFromContract.totalSupply,
-      circulating_supply: BigNumber.from(infoFromMarket.circulating_supply),
-      market_cap_usd_latest: FixedNumber.from(infoFromMarket.market_cap_usd_latest),
-      volume_usd_24h: FixedNumber.from(infoFromMarket.volume_usd_24h),
-      last_updated: new Date(),
-    };
   }
 
   async getInfoFromContract(contractAddress: string): Promise<InfoFromContract> {

@@ -33,15 +33,17 @@ export class EthereumERC20Service_event_approval {
   @Timeout(0)
   async main() {
     if (isDev) return;
+    console.log('start syncing erc20 approval events');
     const [latestLog, tokens] = await Promise.all([
       this.ethereumSyncGethToMysqlService_logs.getLatestLogFromMysql(),
       this.ethereumERC20Repository.find(),
     ]);
     this.latestLogBlockNumber = latestLog.block_number;
-    tokens.forEach(({ contract_address, creation_transaction_hash }) => {
-      this.syncApprovalEvents(contract_address, creation_transaction_hash);
-    });
-    console.log('start syncing erc20 approval events');
+    tokens
+      .filter(({ deployer }) => deployer)
+      .forEach(({ contract_address, creation_transaction_hash }) => {
+        this.syncApprovalEvents(contract_address, creation_transaction_hash);
+      });
   }
 
   async syncApprovalEvents(contractAddress: string, creationTransactionHash: string) {
