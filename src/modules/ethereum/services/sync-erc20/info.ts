@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
-import { isDev, isProd, erc20Contracts, ERC20Contract } from '@/constants';
+import { isDev, isProd } from '@/constants';
 import { ContractWithRemoteProvider, abis, debug } from '@/utils';
 import { BigNumber, FixedNumber } from 'ethers';
 
@@ -39,9 +39,10 @@ export class EthereumERC20Service_info {
     if (isDev) return;
     try {
       console.log('start syncing erc20 info');
-      const entities = await Promise.all(erc20Contracts.map((erc20Contract) => this.getEntity(erc20Contract)));
-      await this.ethereumERC20Repository.upsert(entities, ['contract_address']);
-      debug('sync erc20 info success, entities:', entities);
+      const oldEntities = await this.ethereumERC20Repository.find();
+      const newEntities = await Promise.all(oldEntities.map((entity) => this.getNewEntity(entity)));
+      await this.ethereumERC20Repository.upsert(newEntities, ['contract_address']);
+      debug(`sync erc20 info success, entities(${newEntities.length}):`, newEntities);
     } catch (e) {
       const errorMessage = `sync erc20 info error: ${e.message}`;
       if (isProd) {
@@ -51,22 +52,18 @@ export class EthereumERC20Service_info {
     }
   }
 
-  async getEntity({ contractAddress, creationTransactionHash, isStable }: ERC20Contract) {
+  async getNewEntity({ contract_address, creation_transaction_hash }: EthereumERC20) {
     const [infoFromContract, infoFromMarket, creationTransaction] = await Promise.all([
-      this.getInfoFromContract(contractAddress),
-      this.getInfoFromMarket(contractAddress),
-      // Todo: 有些 Token 暂时还没找到 creationTransactionHash
-      creationTransactionHash ? this.ethereumTransactionsRepository.findOneBy({ transaction_hash: creationTransactionHash }) : null,
+      this.getInfoFromContract(contract_address),
+      this.getInfoFromMarket(contract_address),
+      this.ethereumTransactionsRepository.findOneBy({ transaction_hash: creation_transaction_hash }),
     ]);
     return {
-      contract_address: contractAddress,
       name: infoFromContract.name,
       symbol: infoFromContract.symbol,
       decimals: infoFromContract.decimals,
-      is_stable: isStable,
       deployer: creationTransaction?.from || '',
       deploy_time: creationTransaction?.block_timestamp || '',
-      creation_transaction_hash: creationTransactionHash,
       description: infoFromMarket.description,
       total_supply: infoFromContract.totalSupply,
       circulating_supply: BigNumber.from(infoFromMarket.circulating_supply),
