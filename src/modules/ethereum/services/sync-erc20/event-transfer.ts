@@ -39,11 +39,9 @@ export class EthereumERC20Service_event_transfer {
       this.ethereumERC20Repository.find(),
     ]);
     this.latestLogBlockNumber = latestLog.block_number;
-    tokens
-      .filter(({ deployer }) => deployer)
-      .forEach(({ contract_address, creation_transaction_hash }) => {
-        this.syncTransferEvents(contract_address, creation_transaction_hash);
-      });
+    tokens.forEach(({ contract_address, creation_transaction_hash }) => {
+      this.syncTransferEvents(contract_address, creation_transaction_hash);
+    });
   }
 
   async syncTransferEvents(contractAddress: string, creationTransactionHash: string) {

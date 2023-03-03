@@ -4,9 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
-import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { isDev, isProd } from '@/constants';
-import { ContractWithRemoteProvider, bytesToString, debug } from '@/utils';
+import { remoteProvider, ContractWithRemoteProvider, bytesToString, debug } from '@/utils';
 import { abis } from '@/abis';
 import { BigNumber, FixedNumber } from 'ethers';
 
@@ -29,8 +28,6 @@ export class EthereumERC20Service_info {
   constructor(
     @InjectRepository(EthereumERC20)
     private ethereumERC20Repository: Repository<EthereumERC20>,
-    @InjectRepository(EthereumTransactions)
-    private ethereumTransactionsRepository: Repository<EthereumTransactions>,
     private dingTalkSendService: DingTalkSendService,
   ) {}
 
@@ -42,10 +39,10 @@ export class EthereumERC20Service_info {
     const oldEntities = await this.ethereumERC20Repository.find();
     const newEntities = await Promise.all(oldEntities.map((entity) => this.getNewEntity(entity)));
     await this.ethereumERC20Repository.upsert(
-      newEntities.filter((e) => !!e),
+      newEntities.filter((e) => !!e), // 失败的是 undefined
       ['contract_address'],
     );
-    console.log(`sync erc20 info success. (old: ${oldEntities.length}, new: ${newEntities.length})`);
+    console.log(`sync erc20 info done. (total: ${oldEntities.length}, success: ${newEntities.length})`);
   }
 
   async getNewEntity({ contract_address, creation_transaction_hash, is_stable }: EthereumERC20) {
@@ -53,7 +50,7 @@ export class EthereumERC20Service_info {
       const [infoFromContract, infoFromMarket, creationTransaction] = await Promise.all([
         this.getInfoFromContract(contract_address),
         this.getInfoFromMarket(contract_address),
-        this.ethereumTransactionsRepository.findOneBy({ transaction_hash: creation_transaction_hash }),
+        remoteProvider.getTransaction(creation_transaction_hash),
       ]);
       return {
         contract_address,
@@ -61,8 +58,8 @@ export class EthereumERC20Service_info {
         symbol: infoFromContract.symbol,
         decimals: infoFromContract.decimals,
         is_stable,
-        deployer: creationTransaction?.from || '',
-        deploy_time: creationTransaction?.block_timestamp || '',
+        deployer: creationTransaction.from,
+        deploy_time: new Date(creationTransaction.timestamp),
         creation_transaction_hash,
         description: infoFromMarket.description,
         total_supply: infoFromContract.totalSupply,
@@ -84,7 +81,6 @@ export class EthereumERC20Service_info {
     try {
       return await this.getInfoFromContract_erc20(contractAddress);
     } catch (e) {
-      debug(`getInfoFromContract_erc20 failed. error:`, e.message);
       return await this.getInfoFromContract_erc20_bytes(contractAddress);
     }
   }
@@ -114,7 +110,7 @@ export class EthereumERC20Service_info {
   async getInfoFromMarket(contractAddress: string): Promise<InfoFromMarket> {
     // TODO: 从外部爬虫获取
     return {
-      description: 'Todo: ' + contractAddress,
+      description: '[todo] ' + contractAddress,
       circulating_supply: '0',
       market_cap_usd_latest: '0',
       volume_usd_24h: '0',
