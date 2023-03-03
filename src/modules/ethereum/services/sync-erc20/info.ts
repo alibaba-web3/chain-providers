@@ -81,6 +81,15 @@ export class EthereumERC20Service_info {
   }
 
   async getInfoFromContract(contractAddress: string): Promise<InfoFromContract> {
+    try {
+      return await this.getInfoFromContract_erc20(contractAddress);
+    } catch (e) {
+      debug(`getInfoFromContract_erc20 failed. error:`, e.message);
+      return await this.getInfoFromContract_erc20_bytes(contractAddress);
+    }
+  }
+
+  async getInfoFromContract_erc20(contractAddress: string): Promise<InfoFromContract> {
     const contract = new ContractWithRemoteProvider(contractAddress, abis.erc20);
     const [name, symbol, decimals, totalSupply] = await Promise.all([
       contract.name(),
@@ -88,6 +97,18 @@ export class EthereumERC20Service_info {
       contract.decimals(),
       contract.totalSupply(),
     ]);
+    return { name, symbol, decimals, totalSupply };
+  }
+
+  async getInfoFromContract_erc20_bytes(contractAddress: string): Promise<InfoFromContract> {
+    const contract = new ContractWithRemoteProvider(contractAddress, abis.erc20_bytes);
+    const [name, symbol, decimals, totalSupply] = await Promise.all([
+      contract.name(),
+      contract.symbol(),
+      contract.decimals(),
+      contract.totalSupply(),
+    ]);
+    console.log('getInfoFromContract_erc20_bytes:', { name, symbol, decimals, totalSupply });
     return { name, symbol, decimals, totalSupply };
   }
 
