@@ -6,7 +6,8 @@ import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { isDev, isProd } from '@/constants';
-import { ContractWithRemoteProvider, abis, debug } from '@/utils';
+import { ContractWithRemoteProvider, debug } from '@/utils';
+import { abis } from '@/abis';
 import { BigNumber, FixedNumber } from 'ethers';
 
 interface InfoFromContract {

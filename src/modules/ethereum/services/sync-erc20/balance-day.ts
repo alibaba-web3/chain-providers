@@ -8,8 +8,9 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
-import { debug, getStartOfDay, tryFn, ContractWithLocalProvider, abis } from '@/utils';
+import { debug, getStartOfDay, tryFn, ContractWithLocalProvider } from '@/utils';
 import { isDev, isProd, syncRestartTime } from '@/constants';
+import { abis } from '@/abis';
 import { BigNumber, FixedNumber } from 'ethers';
 import dayjs from 'dayjs';
 
