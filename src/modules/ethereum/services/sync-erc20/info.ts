@@ -6,7 +6,7 @@ import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { isDev, isProd } from '@/constants';
-import { ContractWithRemoteProvider, debug } from '@/utils';
+import { ContractWithRemoteProvider, bytesToString, debug } from '@/utils';
 import { abis } from '@/abis';
 import { BigNumber, FixedNumber } from 'ethers';
 
@@ -103,12 +103,11 @@ export class EthereumERC20Service_info {
   async getInfoFromContract_erc20_bytes(contractAddress: string): Promise<InfoFromContract> {
     const contract = new ContractWithRemoteProvider(contractAddress, abis.erc20_bytes);
     const [name, symbol, decimals, totalSupply] = await Promise.all([
-      contract.name(),
-      contract.symbol(),
+      contract.name().then(bytesToString),
+      contract.symbol().then(bytesToString),
       contract.decimals(),
       contract.totalSupply(),
     ]);
-    console.log('getInfoFromContract_erc20_bytes:', { name, symbol, decimals, totalSupply });
     return { name, symbol, decimals, totalSupply };
   }
 
