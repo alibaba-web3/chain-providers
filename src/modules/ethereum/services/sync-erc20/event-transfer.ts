@@ -30,7 +30,7 @@ export class EthereumERC20Service_event_transfer {
   // 记录 ethereum_logs 表的同步进度
   private latestLogBlockNumber: number;
 
-  @Timeout(0)
+  // @Timeout(0)
   async main() {
     if (isDev) return;
     console.log('start syncing erc20 transfer events');

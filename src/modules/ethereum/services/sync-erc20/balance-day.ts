@@ -33,7 +33,7 @@ export class EthereumERC20Service_balance_day {
   // Map: contract address => latest date
   latestTransferEventDates = new Map<string, Date>();
 
-  @Timeout(0)
+  // @Timeout(0)
   async main() {
     if (isDev) return;
     console.log(`start syncing erc20 balance day`);
