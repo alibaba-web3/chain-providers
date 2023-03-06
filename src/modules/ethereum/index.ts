@@ -19,6 +19,25 @@ import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
 import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
+import { EthereumUniSwapV2Pair } from '@/entities/ethereum-uniswap-v2-pair';
+import { EthereumUniSwapV2EventMint } from '@/entities/ethereum-uniswap-v2-event-mint';
+import { EthereumUniSwapV2EventBurn } from '@/entities/ethereum-uniswap-v2-event-burn';
+import { EthereumUniSwapV2EventSwap } from '@/entities/ethereum-uniswap-v2-event-swap';
+
+export const ethereumEntities = [
+  EthereumBlocks,
+  EthereumTransactions,
+  EthereumLogs,
+  EthereumTraces,
+  EthereumERC20,
+  EthereumERC20BalanceDay,
+  EthereumERC20EventApproval,
+  EthereumERC20EventTransfer,
+  EthereumUniSwapV2Pair,
+  EthereumUniSwapV2EventMint,
+  EthereumUniSwapV2EventBurn,
+  EthereumUniSwapV2EventSwap,
+];
 
 @Module({
   controllers: [EthereumJsonRpcController],
@@ -34,18 +53,7 @@ import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-tran
     EthereumERC20Service_balance_day,
     DingTalkSendService,
   ],
-  imports: [
-    TypeOrmModule.forFeature([
-      EthereumBlocks,
-      EthereumTransactions,
-      EthereumLogs,
-      EthereumTraces,
-      EthereumERC20,
-      EthereumERC20BalanceDay,
-      EthereumERC20EventApproval,
-      EthereumERC20EventTransfer,
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature(ethereumEntities)],
   exports: [
     EthereumGethService,
     EthereumSyncGethToMysqlService_blocks,
