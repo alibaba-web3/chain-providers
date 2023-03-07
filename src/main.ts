@@ -7,7 +7,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DingTalkModule } from '@/modules/dingtalk';
-import { BitcoinModule } from '@/modules/bitcoin';
+import { BitcoinModule, bitcoinEntities } from '@/modules/bitcoin';
 import { EthereumModule, ethereumEntities } from '@/modules/ethereum';
 
 console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
@@ -21,7 +21,7 @@ console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
       password: process.env.MYSQL_PASSWORD,
       database: 'blockchain',
       charset: 'utf8mb4',
-      entities: [...ethereumEntities],
+      entities: [...bitcoinEntities, ...ethereumEntities],
     }),
     ScheduleModule.forRoot(),
     DingTalkModule,
