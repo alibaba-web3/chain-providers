@@ -3,9 +3,9 @@ import { Timeout } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
-import { EthereumSyncGethToMysqlService_logs } from '@/modules/ethereum/services/sync-to-mysql/logs';
+import { EthereumGethSyncService_logs } from '@/modules/ethereum/services/geth/sync-logs';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
-import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
+import { EthereumERC20EventApproval } from '@/entities/ethereum-erc20-event-approval';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { EthereumLogs } from '@/entities/ethereum-logs';
 import { isDev, isProd, syncRestartTime } from '@/constants';
@@ -13,17 +13,17 @@ import { debug } from '@/utils';
 import { ethers, BigNumber } from 'ethers';
 
 @Injectable()
-export class EthereumERC20Service_event_transfer {
+export class EthereumERC20SyncService_event_approval {
   constructor(
     @InjectRepository(EthereumERC20)
     private ethereumERC20Repository: Repository<EthereumERC20>,
-    @InjectRepository(EthereumERC20EventTransfer)
-    private ethereumERC20EventTransferRepository: Repository<EthereumERC20EventTransfer>,
+    @InjectRepository(EthereumERC20EventApproval)
+    private ethereumERC20EventApprovalRepository: Repository<EthereumERC20EventApproval>,
     @InjectRepository(EthereumTransactions)
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
     @InjectRepository(EthereumLogs)
     private ethereumLogsRepository: Repository<EthereumLogs>,
-    private ethereumSyncGethToMysqlService_logs: EthereumSyncGethToMysqlService_logs,
+    private ethereumGethSyncService_logs: EthereumGethSyncService_logs,
     private dingTalkSendService: DingTalkSendService,
   ) {}
 
@@ -33,40 +33,37 @@ export class EthereumERC20Service_event_transfer {
   // @Timeout(0)
   async main() {
     if (isDev) return;
-    console.log('start syncing erc20 transfer events');
-    const [latestLog, tokens] = await Promise.all([
-      this.ethereumSyncGethToMysqlService_logs.getLatestLogFromMysql(),
-      this.ethereumERC20Repository.find(),
-    ]);
+    console.log('start syncing erc20 approval events');
+    const [latestLog, tokens] = await Promise.all([this.ethereumGethSyncService_logs.getLatestLogFromMysql(), this.ethereumERC20Repository.find()]);
     this.latestLogBlockNumber = latestLog.block_number;
     tokens.forEach(({ contract_address, creation_transaction_hash }) => {
-      this.syncTransferEvents(contract_address, creation_transaction_hash);
+      this.syncApprovalEvents(contract_address, creation_transaction_hash);
     });
   }
 
-  async syncTransferEvents(contractAddress: string, creationTransactionHash: string) {
-    const event = await this.getLatestTransferEventFromMysql(contractAddress);
+  async syncApprovalEvents(contractAddress: string, creationTransactionHash: string) {
+    const event = await this.getLatestApprovalEventFromMysql(contractAddress);
     if (event) {
       // 由于除了主键，没有其它能标识唯一行的字段，所以先删掉整个区块的数据再重新 insert 而不是 upsert
-      await this.ethereumERC20EventTransferRepository.delete({
+      await this.ethereumERC20EventApprovalRepository.delete({
         contract_address: contractAddress,
         block_number: event.block_number,
       });
-      this.syncTransferEventsFromBlockNumber(contractAddress, event.block_number);
+      this.syncApprovalEventsFromBlockNumber(contractAddress, event.block_number);
     } else {
       const creationTransaction = await this.ethereumTransactionsRepository.findOneBy({
         transaction_hash: creationTransactionHash,
       });
       if (creationTransaction) {
-        this.syncTransferEventsFromBlockNumber(contractAddress, creationTransaction.block_number);
+        this.syncApprovalEventsFromBlockNumber(contractAddress, creationTransaction.block_number);
       } else {
-        console.log(`sync erc20 transfer events failed. creation transaction not found: ${creationTransactionHash}`);
+        console.log(`sync erc20 approval events failed. creation transaction not found: ${creationTransactionHash}`);
       }
     }
   }
 
-  async getLatestTransferEventFromMysql(contractAddress: string) {
-    const [event] = await this.ethereumERC20EventTransferRepository.find({
+  async getLatestApprovalEventFromMysql(contractAddress: string) {
+    const [event] = await this.ethereumERC20EventApprovalRepository.find({
       where: { contract_address: contractAddress },
       order: { block_number: 'DESC' },
       take: 1,
@@ -76,20 +73,20 @@ export class EthereumERC20Service_event_transfer {
 
   // 推荐阅读：理解以太坊的 event logs
   // https://medium.com/mycrypto/understanding-event-logs-on-the-ethereum-blockchain-f4ae7ba50378
-  async syncTransferEventsFromBlockNumber(contractAddress: string, blockNumber: number) {
+  async syncApprovalEventsFromBlockNumber(contractAddress: string, blockNumber: number) {
     if (blockNumber >= this.latestLogBlockNumber) {
       // 没有数据了，等一段时间后有新的数据了再重新开始
       return setTimeout(async () => {
-        const latestLog = await this.ethereumSyncGethToMysqlService_logs.getLatestLogFromMysql();
+        const latestLog = await this.ethereumGethSyncService_logs.getLatestLogFromMysql();
         this.latestLogBlockNumber = latestLog.block_number;
-        this.syncTransferEventsFromBlockNumber(contractAddress, blockNumber);
+        this.syncApprovalEventsFromBlockNumber(contractAddress, blockNumber);
       }, syncRestartTime);
     }
     try {
       const logs = await this.ethereumLogsRepository.findBy({
         contract_address: contractAddress,
         block_number: blockNumber,
-        topic_1: ethers.utils.id('Transfer(address,address,uint256)'),
+        topic_1: ethers.utils.id('Approval(address,address,uint256)'),
       });
       if (logs.length > 0) {
         const eventEntities = logs.map((log) => ({
@@ -103,16 +100,16 @@ export class EthereumERC20Service_event_transfer {
           transaction_hash: log.transaction_hash,
           log_index: log.log_index,
         }));
-        await this.ethereumERC20EventTransferRepository.insert(eventEntities);
-        debug(`sync erc20 transfer events (contract: ${contractAddress}, block: ${blockNumber}, event count: ${eventEntities.length}) success 🎉`);
+        await this.ethereumERC20EventApprovalRepository.insert(eventEntities);
+        debug(`sync erc20 approval events (contract: ${contractAddress}, block: ${blockNumber}, event count: ${eventEntities.length}) success 🎉`);
       }
     } catch (e) {
-      const errorMessage = `sync erc20 transfer events (contract: ${contractAddress}, block: ${blockNumber}) error: ${e.message}`;
+      const errorMessage = `sync erc20 approval events (contract: ${contractAddress}, block: ${blockNumber}) error: ${e.message}`;
       if (isProd) {
         this.dingTalkSendService.sendTextToTestRoom(errorMessage);
       }
       debug(errorMessage);
     }
-    this.syncTransferEventsFromBlockNumber(contractAddress, blockNumber + 1);
+    this.syncApprovalEventsFromBlockNumber(contractAddress, blockNumber + 1);
   }
 }

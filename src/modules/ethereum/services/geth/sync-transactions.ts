@@ -5,12 +5,12 @@ import { Repository } from 'typeorm';
 import { EthereumTransactions } from '@/entities/ethereum-transactions';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumGethService } from '../geth';
-import { EthereumGethServiceResponse } from '../../types/geth';
+import { EthereumGethServiceResponse } from './types/geth';
 import { isDev, isProd, syncRestartTime, ethereumBlockNumberOfFirstTransaction } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
-export class EthereumSyncGethToMysqlService_transactions {
+export class EthereumGethSyncService_transactions {
   constructor(
     @InjectRepository(EthereumTransactions)
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,

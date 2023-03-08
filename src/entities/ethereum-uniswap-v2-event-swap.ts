@@ -1,4 +1,5 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { BigNumber } from 'ethers';
 
 @Entity()
 export class EthereumUniSwapV2EventSwap {
@@ -14,17 +15,45 @@ export class EthereumUniSwapV2EventSwap {
   @Column('char', { length: 42 })
   to: string;
 
-  @Column('int', { unsigned: true })
-  token0_amount_in: number;
+  @Column('decimal', {
+    precision: 38,
+    scale: 0,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => v && BigNumber.from(v),
+    },
+  })
+  token0_amount_in?: BigNumber;
 
-  @Column('int', { unsigned: true })
-  token0_amount_out: number;
+  @Column('decimal', {
+    precision: 38,
+    scale: 0,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => v && BigNumber.from(v),
+    },
+  })
+  token0_amount_out?: BigNumber;
 
-  @Column('int', { unsigned: true })
-  token1_amount_in: number;
+  @Column('decimal', {
+    precision: 38,
+    scale: 0,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => v && BigNumber.from(v),
+    },
+  })
+  token1_amount_in?: BigNumber;
 
-  @Column('int', { unsigned: true })
-  token1_amount_out: number;
+  @Column('decimal', {
+    precision: 38,
+    scale: 0,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => v && BigNumber.from(v),
+    },
+  })
+  token1_amount_out?: BigNumber;
 
   @Column('int', { unsigned: true })
   block_number: number;

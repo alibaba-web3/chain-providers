@@ -1,4 +1,5 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { BigNumber } from 'ethers';
 
 @Entity()
 export class EthereumUniSwapV2EventBurn {
@@ -14,11 +15,25 @@ export class EthereumUniSwapV2EventBurn {
   @Column('char', { length: 42 })
   to: string;
 
-  @Column('int', { unsigned: true })
-  token0_amount: number;
+  @Column('decimal', {
+    precision: 38,
+    scale: 0,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => v && BigNumber.from(v),
+    },
+  })
+  token0_amount?: BigNumber;
 
-  @Column('int', { unsigned: true })
-  token1_amount: number;
+  @Column('decimal', {
+    precision: 38,
+    scale: 0,
+    transformer: {
+      to: (v: BigNumber) => v.toString(),
+      from: (v: string) => v && BigNumber.from(v),
+    },
+  })
+  token1_amount?: BigNumber;
 
   @Column('int', { unsigned: true })
   block_number: number;

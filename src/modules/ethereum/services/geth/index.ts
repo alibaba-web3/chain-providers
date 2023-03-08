@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { EthereumJsonRpcRequest, EthereumJsonRpcResponse, EthereumJsonRpc } from '../types/json-rpc';
-import { EthereumGethServiceResponse } from '../types/geth';
+import { EthereumJsonRpcRequest, EthereumJsonRpcResponse, EthereumJsonRpc } from './types/json-rpc';
+import { EthereumGethServiceResponse } from './types/geth';
 import { request } from '@/utils';
 
 const transformSyncing = (syncing: EthereumJsonRpc.Syncing): EthereumGethServiceResponse.Syncing => ({

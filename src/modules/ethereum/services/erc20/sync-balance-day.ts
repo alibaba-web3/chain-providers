@@ -3,7 +3,7 @@ import { Timeout } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
-import { EthereumERC20Service_event_transfer } from './event-transfer';
+import { EthereumERC20SyncService_event_transfer } from './sync-event-transfer';
 import { EthereumERC20 } from '@/entities/ethereum-erc20';
 import { EthereumERC20EventTransfer } from '@/entities/ethereum-erc20-event-transfer';
 import { EthereumERC20BalanceDay } from '@/entities/ethereum-erc20-balance-day';
@@ -15,7 +15,7 @@ import { BigNumber, FixedNumber } from 'ethers';
 import dayjs from 'dayjs';
 
 @Injectable()
-export class EthereumERC20Service_balance_day {
+export class EthereumERC20SyncService_balance_day {
   constructor(
     @InjectRepository(EthereumERC20)
     private ethereumERC20Repository: Repository<EthereumERC20>,
@@ -25,7 +25,7 @@ export class EthereumERC20Service_balance_day {
     private ethereumERC20BalanceDayRepository: Repository<EthereumERC20BalanceDay>,
     @InjectRepository(EthereumTransactions)
     private ethereumTransactionsRepository: Repository<EthereumTransactions>,
-    private ethereumERC20Service_event_transfer: EthereumERC20Service_event_transfer,
+    private ethereumERC20Service_event_transfer: EthereumERC20SyncService_event_transfer,
     private dingTalkSendService: DingTalkSendService,
   ) {}
 

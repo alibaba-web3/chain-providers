@@ -9,7 +9,7 @@ import { isDev, isProd, syncRestartTime } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
-export class EthereumSyncGethToMysqlService_blocks {
+export class EthereumGethSyncService_blocks {
   constructor(
     @InjectRepository(EthereumBlocks)
     private ethereumBlocksRepository: Repository<EthereumBlocks>,

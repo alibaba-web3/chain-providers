@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { Controller, Post, Body, Res } from '@nestjs/common';
 import { EthereumGethService } from '../services/geth';
-import { EthereumJsonRpcRequest } from '../types/json-rpc';
+import { EthereumJsonRpcRequest } from '../services/geth/types/json-rpc';
 
 @Controller('/ethereum/json-rpc')
 export class EthereumJsonRpcController {

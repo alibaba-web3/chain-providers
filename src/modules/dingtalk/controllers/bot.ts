@@ -2,10 +2,10 @@ import { Controller, Post, Body } from '@nestjs/common';
 import { DingTalkSendService } from '../services/send';
 import { BitcoinCoreService } from '@/modules/bitcoin/services/bitcoin-core';
 import { EthereumGethService } from '@/modules/ethereum/services/geth';
-import { EthereumSyncGethToMysqlService_blocks } from '@/modules/ethereum/services/sync-to-mysql/blocks';
-import { EthereumSyncGethToMysqlService_transactions } from '@/modules/ethereum/services/sync-to-mysql/transactions';
-import { EthereumSyncGethToMysqlService_logs } from '@/modules/ethereum/services/sync-to-mysql/logs';
-import { EthereumSyncGethToMysqlService_traces } from '@/modules/ethereum/services/sync-to-mysql/traces';
+import { EthereumGethSyncService_blocks } from '@/modules/ethereum/services/geth/sync-blocks';
+import { EthereumGethSyncService_transactions } from '@/modules/ethereum/services/geth/sync-transactions';
+import { EthereumGethSyncService_logs } from '@/modules/ethereum/services/geth/sync-logs';
+import { EthereumGethSyncService_traces } from '@/modules/ethereum/services/geth/sync-traces';
 import { dingTalkBotUrls } from '@/constants';
 
 interface MessageBody {
@@ -33,10 +33,10 @@ export class DingTalkBotController {
     private dingTalkSendService: DingTalkSendService,
     private bitcoinCoreService: BitcoinCoreService,
     private ethereumGethService: EthereumGethService,
-    private ethereumSyncGethToMysqlService_blocks: EthereumSyncGethToMysqlService_blocks,
-    private ethereumSyncGethToMysqlService_transactions: EthereumSyncGethToMysqlService_transactions,
-    private ethereumSyncGethToMysqlService_logs: EthereumSyncGethToMysqlService_logs,
-    private ethereumSyncGethToMysqlService_traces: EthereumSyncGethToMysqlService_traces,
+    private ethereumGethSyncService_blocks: EthereumGethSyncService_blocks,
+    private ethereumGethSyncService_transactions: EthereumGethSyncService_transactions,
+    private ethereumGethSyncService_logs: EthereumGethSyncService_logs,
+    private ethereumGethSyncService_traces: EthereumGethSyncService_traces,
   ) {}
 
   @Post()
@@ -74,10 +74,10 @@ export class DingTalkBotController {
         this.ethereumGethService.net_peerCount(),
         this.ethereumGethService.eth_syncing(),
         this.ethereumGethService.eth_blockNumber(),
-        this.ethereumSyncGethToMysqlService_blocks.getLatestBlockFromMysql(),
-        this.ethereumSyncGethToMysqlService_transactions.getLatestTransactionFromMysql(),
-        this.ethereumSyncGethToMysqlService_logs.getLatestLogFromMysql(),
-        this.ethereumSyncGethToMysqlService_traces.getLatestTraceFromMysql(),
+        this.ethereumGethSyncService_blocks.getLatestBlockFromMysql(),
+        this.ethereumGethSyncService_transactions.getLatestTransactionFromMysql(),
+        this.ethereumGethSyncService_logs.getLatestLogFromMysql(),
+        this.ethereumGethSyncService_traces.getLatestTraceFromMysql(),
       ]);
     const texts = [];
     texts.push(`eth_syncing (peers: ${peerCount})`);

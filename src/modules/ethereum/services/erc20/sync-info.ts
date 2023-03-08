@@ -24,7 +24,7 @@ interface InfoFromMarket {
 }
 
 @Injectable()
-export class EthereumERC20Service_info {
+export class EthereumERC20SyncService_info {
   constructor(
     @InjectRepository(EthereumERC20)
     private ethereumERC20Repository: Repository<EthereumERC20>,

@@ -5,12 +5,12 @@ import { Repository } from 'typeorm';
 import { EthereumTraces } from '@/entities/ethereum-traces';
 import { DingTalkSendService } from '@/modules/dingtalk/services/send';
 import { EthereumGethService } from '../geth';
-import { EthereumGethServiceResponse } from '../../types/geth';
+import { EthereumGethServiceResponse } from './types/geth';
 import { isDev, isProd, syncRestartTime, ethereumBlockNumberOfFirstTransaction, ethereumTracesSyncStep } from '@/constants';
 import { debug } from '@/utils';
 
 @Injectable()
-export class EthereumSyncGethToMysqlService_traces {
+export class EthereumGethSyncService_traces {
   constructor(
     @InjectRepository(EthereumTraces)
     private ethereumTracesRepository: Repository<EthereumTraces>,
