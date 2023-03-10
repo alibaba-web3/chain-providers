@@ -91,8 +91,8 @@ export class EthereumERC20SyncService_event_approval {
       if (logs.length > 0) {
         const eventEntities = logs.map((log) => ({
           contract_address: log.contract_address,
-          from: `0x${log.topic_2.slice(-40)}`,
-          to: `0x${log.topic_3.slice(-40)}`,
+          owner: `0x${log.topic_2.slice(-40)}`,
+          spender: `0x${log.topic_3.slice(-40)}`,
           value: BigNumber.from(log.data),
           block_number: log.block_number,
           block_timestamp: log.block_timestamp,
