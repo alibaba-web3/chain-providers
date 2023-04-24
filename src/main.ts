@@ -9,6 +9,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DingTalkModule } from '@/modules/dingtalk';
 import { BitcoinModule, bitcoinEntities } from '@/modules/bitcoin';
 import { EthereumModule, ethereumEntities } from '@/modules/ethereum';
+import { NftModule } from '@/modules/nft';
 
 console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
 
@@ -27,6 +28,7 @@ console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
     DingTalkModule,
     BitcoinModule,
     EthereumModule,
+    NftModule,
   ],
 })
 class AppModule {}
