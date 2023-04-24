@@ -32,7 +32,7 @@ export class EthereumUniSwapV2SyncService_pairs {
   // 记录 ethereum_logs 表的同步进度
   private latestLogBlockNumber: number;
 
-  @Timeout(0)
+  // @Timeout(0)
   async main() {
     if (isDev) return;
     console.log('start syncing uniswap-v2 pairs');

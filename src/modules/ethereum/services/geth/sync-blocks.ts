@@ -17,7 +17,7 @@ export class EthereumGethSyncService_blocks {
     private dingTalkSendService: DingTalkSendService,
   ) {}
 
-  @Timeout(0)
+  // @Timeout(0)
   async main() {
     if (isDev) return;
     const block = await this.getLatestBlockFromMysql();

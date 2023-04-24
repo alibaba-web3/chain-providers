@@ -31,7 +31,7 @@ export class EthereumERC20SyncService_info {
     private dingTalkSendService: DingTalkSendService,
   ) {}
 
-  @Timeout(0)
+  // @Timeout(0)
   @Cron(CronExpression.EVERY_HOUR)
   async main() {
     if (isDev) return;

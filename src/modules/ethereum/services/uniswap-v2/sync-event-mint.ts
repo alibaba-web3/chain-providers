@@ -5,6 +5,6 @@ import { Timeout } from '@nestjs/schedule';
 export class EthereumUniSwapV2SyncService_event_mint {
   constructor() {}
 
-  @Timeout(0)
+  // @Timeout(0)
   async main() {}
 }
