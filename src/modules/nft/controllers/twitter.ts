@@ -6,7 +6,7 @@ const twitterAuth = new auth.OAuth2User({
   client_id: process.env.TWITTER_CLIENT_ID,
   client_secret: process.env.TWITTER_CLIENT_SECRET,
   callback: process.env.TWITTER_CALLBACK_URL,
-  scopes: ['tweet.read', 'users.read'],
+  scopes: ['users.read', 'follows.read', 'follows.write', 'tweet.read', 'tweet.write'],
 });
 
 const twitterClient = new Client(twitterAuth);

@@ -32,7 +32,7 @@ export class EthereumERC20SyncService_info {
   ) {}
 
   // @Timeout(0)
-  @Cron(CronExpression.EVERY_HOUR)
+  // @Cron(CronExpression.EVERY_HOUR)
   async main() {
     if (isDev) return;
     console.log('start syncing erc20 info');
